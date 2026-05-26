@@ -1,0 +1,67 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="200dp"
+    android:height="200dp"
+    android:viewportWidth="200"
+    android:viewportHeight="200">
+
+    <!-- Outer Frame -->
+    <path
+        android:pathData="M140,40 L60,40 C48.9,40 40,48.9 40,60 L40,140 C40,151.1 48.9,160 60,160 L140,160 C151.1,160 160,151.1 160,140 L160,100"
+        android:strokeWidth="8"
+        android:strokeLineCap="round">
+        <aapt:attr name="android:strokeColor">
+            <gradient
+                android:startX="40"
+                android:startY="40"
+                android:endX="160"
+                android:endY="160"
+                android:type="linear">
+                <item android:offset="0" android:color="#FFFF80FF" />
+                <item android:offset="1" android:color="#FF8A2BE2" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Star Wand Stick -->
+    <path
+        android:pathData="M70,140 L115,95"
+        android:strokeWidth="8"
+        android:strokeLineCap="round">
+        <aapt:attr name="android:strokeColor">
+            <gradient
+                android:startX="70"
+                android:startY="140"
+                android:endX="115"
+                android:endY="95"
+                android:type="linear">
+                <item android:offset="0" android:color="#FF8A2BE2" />
+                <item android:offset="1" android:color="#FFFF80FF" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Star -->
+    <path
+        android:pathData="M135,30 L144.3,51.6 L167.3,53.4 L149.7,68.4 L155.1,90.8 L135,78.8 L114.9,90.8 L120.3,68.4 L102.7,53.4 L125.7,51.6 Z"
+        android:strokeWidth="8"
+        android:strokeLineJoin="round">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="102"
+                android:startY="30"
+                android:endX="167"
+                android:endY="90"
+                android:type="linear">
+                <item android:offset="0" android:color="#FFFF80FF" />
+                <item android:offset="1" android:color="#FF8A2BE2" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Sparkles -->
+    <path android:fillColor="#FFFF80FF" android:pathData="M80,70 A2,2 0 1,1 76,70 A2,2 0 1,1 80,70 Z" />
+    <path android:fillColor="#FF8A2BE2" android:pathData="M65,110 A3,3 0 1,1 59,110 A3,3 0 1,1 65,110 Z" />
+    <path android:fillColor="#FFFF80FF" android:pathData="M110,130 A2,2 0 1,1 106,130 A2,2 0 1,1 110,130 Z" />
+    <path android:fillColor="#FF8A2BE2" android:pathData="M150,140 A2,2 0 1,1 146,140 A2,2 0 1,1 150,140 Z" />
+</vector>

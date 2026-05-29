@@ -8,21 +8,22 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import com.pixielook.facefocus.ui.screens.HairLengthScreen
-import com.pixielook.facefocus.ui.screens.SplashScreen
-import com.pixielook.facefocus.ui.screens.StyleSelectionScreen
+import com.pixielook.facefocus.ui.screens.*
 import com.pixielook.facefocus.ui.theme.PixieLookTheme
-import com.pixielook.facefocus.ui.screens.HairTypeScreen
-import com.pixielook.facefocus.ui.screens.AgeScreen
-import com.pixielook.facefocus.ui.screens.HairStylingTimeScreen
-import com.pixielook.facefocus.ui.screens.LifestyleScreen
-import com.pixielook.facefocus.ui.screens.SuccessScreen
-import com.pixielook.facefocus.ui.screens.FaceScanScreen
-import com.pixielook.facefocus.ui.screens.CameraFaceScanScreen
-import com.pixielook.facefocus.ui.screens.FaceScanningScreen
-import com.pixielook.facefocus.ui.screens.FaceScanCompleteScreen
+
 enum class AppStep {
-    SPLASH, STYLE_SELECTION, HAIR_LENGTH,HAIR_TYPE,AGE_SELECTION, HAIR_STYLE_TIMING, LIFE_STYLES,SUCCESS_SCREEN, FACE_SCAN, CAMERA_FACE_SCAN, FACE_SCANNING, FACE_SCANNING_COMPLETED, MAIN_CONTENT
+    SPLASH,
+    INTRO1, INTRO2, INTRO3, INTRO4, INTRO5, INTRO6, INTRO7, INTRO9, INTRO10, INTRO11, INTRO12,
+    MAIN_SCREEN, SHOP_SCREEN, ACCOUNT_SCREEN, MESSAGE_SCREEN,
+    VIRTUAL_TRY_ONS, TOP_MENTOR, SKIN_ANALYSE, MENTOR_PROFILE, MENTOR_DETAILS, MENTOR_BOOKING, MENTOR_REVIEW,
+    SKIN_REC_MASSAGE, SKIN_REC_PRODUCTS,
+    HAIR_STYLE_FOR_MEN_1, HAIR_STYLE_FOR_MEN_2, HAIR_STYLE_FOR_MEN_3,
+    HAIR_STYLE_FOR_WOMEN,
+    HAIR_STYLE_SEARCH_MEN, HAIR_STYLE_SEARCH_WOMEN,
+    HAIR_STYLE_SEARCH_SEL_MEN, HAIR_STYLE_SEARCH_SEL_WOMEN,
+    HAIR_STYLE_ACCESSORIES, HAIR_STYLE_ELECTRONIC,
+    FACE_FOCUS_SELECTION, FACE_FOCUS_AFTER_SEL, FACE_FOCUS_CONGRATS,
+    GENDER_SEL_MOCK, TIME_SEL_MOCK, TYPE_SEL_MOCK
 }
 
 class MainActivity : ComponentActivity() {
@@ -37,66 +38,60 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     when (currentStep) {
-                        AppStep.SPLASH -> {
-                            SplashScreen(onTimeout = { currentStep = AppStep.STYLE_SELECTION })
-                        }
-                        AppStep.STYLE_SELECTION -> {
-                            StyleSelectionScreen(onNext = { currentStep = AppStep.HAIR_LENGTH })
-                        }
-                        AppStep.HAIR_LENGTH -> {
-                            HairLengthScreen(onNext = { currentStep = AppStep.HAIR_TYPE })
-                        }
-                        AppStep.HAIR_TYPE -> {
-                            HairTypeScreen(onNext = { currentStep = AppStep.AGE_SELECTION })
-                        }
-                        AppStep.AGE_SELECTION -> {
-                            AgeScreen(onNext = { currentStep = AppStep.HAIR_STYLE_TIMING })
-                        }
-                        AppStep.HAIR_STYLE_TIMING -> {
-                            HairStylingTimeScreen(onNext = { currentStep = AppStep.LIFE_STYLES })
-                        }
-                        AppStep.LIFE_STYLES -> {
-                            LifestyleScreen(onNext = { currentStep = AppStep.SUCCESS_SCREEN })
-                        }
-                        AppStep.SUCCESS_SCREEN -> {
-                            SuccessScreen(onNext = { currentStep = AppStep.FACE_SCAN })
-                        }
-                        AppStep.FACE_SCAN -> {
-                            FaceScanScreen(onGetStarted = { currentStep = AppStep.CAMERA_FACE_SCAN })
-                        }
-                        AppStep.CAMERA_FACE_SCAN -> {
-                            CameraFaceScanScreen(onHome = { currentStep = AppStep.FACE_SCANNING })
-                        }
-                        AppStep.FACE_SCANNING -> {
-                            FaceScanningScreen(onComplete = { currentStep = AppStep.FACE_SCANNING_COMPLETED })
-                        }
-                        AppStep.FACE_SCANNING_COMPLETED -> {
-                            FaceScanCompleteScreen(onFinish = { currentStep = AppStep.MAIN_CONTENT })
-                        }
-                        AppStep.MAIN_CONTENT -> {
-                            MainScreenContent()
-                        }
+                        AppStep.SPLASH -> SplashScreen { currentStep = AppStep.INTRO1 }
+                        
+                        AppStep.INTRO1 -> IntroScreen1 { currentStep = AppStep.INTRO2 }
+                        AppStep.INTRO2 -> IntroScreen2 { currentStep = AppStep.INTRO3 }
+                        AppStep.INTRO3 -> IntroScreen3 { currentStep = AppStep.INTRO4 }
+                        AppStep.INTRO4 -> IntroScreen4 { currentStep = AppStep.INTRO5 }
+                        AppStep.INTRO5 -> IntroScreen5 { currentStep = AppStep.INTRO6 }
+                        AppStep.INTRO6 -> IntroScreen6 { currentStep = AppStep.INTRO7 }
+                        AppStep.INTRO7 -> IntroScreen7 { currentStep = AppStep.INTRO9 }
+                        AppStep.INTRO9 -> IntroScreen9 { currentStep = AppStep.INTRO10 }
+                        AppStep.INTRO10 -> IntroScreen10 { currentStep = AppStep.INTRO11 }
+                        AppStep.INTRO11 -> IntroScreen11 { currentStep = AppStep.INTRO12 }
+                        AppStep.INTRO12 -> IntroScreen12 { currentStep = AppStep.MAIN_SCREEN }
+
+                        AppStep.MAIN_SCREEN -> MainScreen { currentStep = AppStep.SHOP_SCREEN }
+                        AppStep.SHOP_SCREEN -> ShopScreen { currentStep = AppStep.ACCOUNT_SCREEN }
+                        AppStep.ACCOUNT_SCREEN -> AccountScreen { currentStep = AppStep.MESSAGE_SCREEN }
+                        AppStep.MESSAGE_SCREEN -> MessageScreen { currentStep = AppStep.VIRTUAL_TRY_ONS }
+
+                        AppStep.VIRTUAL_TRY_ONS -> VirtualTryOnsScreen { currentStep = AppStep.TOP_MENTOR }
+                        AppStep.TOP_MENTOR -> TopMentorScreen { currentStep = AppStep.SKIN_ANALYSE }
+                        AppStep.SKIN_ANALYSE -> SkinAnalyseScreen { currentStep = AppStep.MENTOR_PROFILE }
+                        AppStep.MENTOR_PROFILE -> MentorProfileScreen { currentStep = AppStep.MENTOR_DETAILS }
+                        AppStep.MENTOR_DETAILS -> MentorDetailsScreen { currentStep = AppStep.MENTOR_BOOKING }
+                        AppStep.MENTOR_BOOKING -> MentorBookingScreen { currentStep = AppStep.MENTOR_REVIEW }
+                        AppStep.MENTOR_REVIEW -> MentorReviewScreen { currentStep = AppStep.SKIN_REC_MASSAGE }
+
+                        AppStep.SKIN_REC_MASSAGE -> SkinRecomendationMassageScreen { currentStep = AppStep.SKIN_REC_PRODUCTS }
+                        AppStep.SKIN_REC_PRODUCTS -> SkinRecomendationProductsScreen { currentStep = AppStep.HAIR_STYLE_FOR_MEN_1 }
+
+                        AppStep.HAIR_STYLE_FOR_MEN_1 -> HairStyleForMenScreen1 { currentStep = AppStep.HAIR_STYLE_FOR_MEN_2 }
+                        AppStep.HAIR_STYLE_FOR_MEN_2 -> HairStyleForMenScreen2 { currentStep = AppStep.HAIR_STYLE_FOR_MEN_3 }
+                        AppStep.HAIR_STYLE_FOR_MEN_3 -> HairStyleForMenScreen3 { currentStep = AppStep.HAIR_STYLE_FOR_WOMEN }
+
+                        AppStep.HAIR_STYLE_FOR_WOMEN -> HairStyleForWomeScreen { currentStep = AppStep.HAIR_STYLE_SEARCH_MEN }
+                        AppStep.HAIR_STYLE_SEARCH_MEN -> HairStyleSearchForMenScreen { currentStep = AppStep.HAIR_STYLE_SEARCH_WOMEN }
+                        AppStep.HAIR_STYLE_SEARCH_WOMEN -> HairStyleSearchForWomeScreen { currentStep = AppStep.HAIR_STYLE_SEARCH_SEL_MEN }
+                        
+                        AppStep.HAIR_STYLE_SEARCH_SEL_MEN -> HairStyleSearchSelectionForMenScreen { currentStep = AppStep.HAIR_STYLE_SEARCH_SEL_WOMEN }
+                        AppStep.HAIR_STYLE_SEARCH_SEL_WOMEN -> HairStyleSearchSelectionForWomenScreen { currentStep = AppStep.HAIR_STYLE_ACCESSORIES }
+                        
+                        AppStep.HAIR_STYLE_ACCESSORIES -> HairStyleWithAccessoriesScreen { currentStep = AppStep.HAIR_STYLE_ELECTRONIC }
+                        AppStep.HAIR_STYLE_ELECTRONIC -> HairStyleWithElectronicDevicesScreen { currentStep = AppStep.FACE_FOCUS_SELECTION }
+
+                        AppStep.FACE_FOCUS_SELECTION -> FaceFocusSelectionScreen { currentStep = AppStep.FACE_FOCUS_AFTER_SEL }
+                        AppStep.FACE_FOCUS_AFTER_SEL -> FaceFocusAfterSelectionScreen { currentStep = AppStep.FACE_FOCUS_CONGRATS }
+                        AppStep.FACE_FOCUS_CONGRATS -> FaceFocusCongratulationScreen { currentStep = AppStep.GENDER_SEL_MOCK }
+                        
+                        AppStep.GENDER_SEL_MOCK -> HairStyleGenderSelectionScreenMock { currentStep = AppStep.TIME_SEL_MOCK }
+                        AppStep.TIME_SEL_MOCK -> HairStyleTimeSelectionScreenMock { currentStep = AppStep.TYPE_SEL_MOCK }
+                        AppStep.TYPE_SEL_MOCK -> HairStyleTypeSelectionScreenMock { currentStep = AppStep.SPLASH }
                     }
                 }
             }
         }
-    }
-}
-
-@Composable
-fun MainScreenContent() {
-    Greeting("Pixie Look Smart Mirror Prototype")
-}
-
-@Composable
-fun Greeting(name: String) {
-    androidx.compose.foundation.layout.Box(
-        modifier = Modifier.fillMaxSize(), 
-        contentAlignment = androidx.compose.ui.Alignment.Center
-    ) {
-        androidx.compose.material3.Text(
-            text = name,
-            style = MaterialTheme.typography.headlineMedium
-        )
     }
 }

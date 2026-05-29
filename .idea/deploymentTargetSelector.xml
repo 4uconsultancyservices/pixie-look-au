@@ -4,8 +4,11 @@
     <selectionStates>
       <SelectionState runConfigName="app">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2026-05-26T22:32:10.184753400Z">
+        <DropdownSelection timestamp="2026-05-28T22:05:51.149866400Z">
           <Target type="DEFAULT_BOOT">
+            <handle>
+              <DeviceId pluginId="FirebaseDirectAccess" identifier="reservation=projects/facefocus-f1f5fe73/deviceSessions/session-48r14xsx0ey3a" />
+            </handle>
             <template>
               <DeviceId pluginId="FirebaseDirectAccess" type="TEMPLATE" identifier="model_id=gts8uwifi/33" />
             </template>

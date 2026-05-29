@@ -5,6 +5,8 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -19,46 +21,42 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.pixielook.facefocus.R
 import com.pixielook.facefocus.ui.theme.PixieLookTheme
-import kotlinx.coroutines.delay
 
 @Composable
-fun SplashScreen(
-    onTimeout: () -> Unit
+fun IntroScreen1(
+    onNext: () -> Unit
 ) {
 
     // Smooth fade animation
     val imageAlpha = remember { Animatable(0f) }
 
     LaunchedEffect(Unit) {
-
         imageAlpha.animateTo(
             targetValue = 1f,
             animationSpec = tween(
-                durationMillis = 1200,
+                durationMillis = 800,
                 easing = FastOutSlowInEasing
             )
         )
-
-        delay(2200)
-
-        onTimeout()
     }
 
     // Root
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black),
+            .background(Color.Black)
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = onNext
+            ),
         contentAlignment = Alignment.Center
     ) {
 
-        // FULL IMAGE
-        // No crop
-        // Fully centered
-        // Fullscreen contain mode
+        // Fullscreen image
         Image(
-            painter = painterResource(id = R.drawable.splash_screen),
-            contentDescription = "Splash Image",
+            painter = painterResource(id = R.drawable.intro1),
+            contentDescription = "Intro 1",
             modifier = Modifier
                 .fillMaxSize()
                 .alpha(imageAlpha.value),
@@ -80,7 +78,7 @@ fun SplashScreen(
 @Composable
 private fun PreviewPhone() {
     PixieLookTheme {
-        SplashScreen {}
+        IntroScreen1 {}
     }
 }
 
@@ -93,19 +91,6 @@ private fun PreviewPhone() {
 @Composable
 private fun PreviewTablet() {
     PixieLookTheme {
-        SplashScreen {}
-    }
-}
-
-@Preview(
-    name = "Large Tablet",
-    widthDp = 1600,
-    heightDp = 1000,
-    showBackground = true
-)
-@Composable
-private fun PreviewLargeTablet() {
-    PixieLookTheme {
-        SplashScreen {}
+        IntroScreen1 {}
     }
 }

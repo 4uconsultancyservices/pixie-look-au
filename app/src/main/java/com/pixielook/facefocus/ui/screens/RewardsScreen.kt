@@ -29,7 +29,7 @@ import androidx.compose.ui.unit.dp
 import com.pixielook.facefocus.R
 
 @Composable
-fun HairStyleForMenScreen3(
+fun RewardsScreen(
     onNext: () -> Unit,
     onBack: () -> Unit
 ) {
@@ -58,7 +58,7 @@ fun HairStyleForMenScreen3(
         contentAlignment = Alignment.Center
     ) {
         Image(
-            painter = painterResource(id = R.drawable.hair_style_formen_creen3),
+            painter = painterResource(id = R.drawable.message_screen),
             contentDescription = null,
             modifier = Modifier.fillMaxSize().alpha(imageAlpha.value),
             contentScale = ContentScale.Fit

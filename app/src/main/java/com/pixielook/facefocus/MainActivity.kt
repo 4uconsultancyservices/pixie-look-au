@@ -2,19 +2,21 @@ package com.pixielook.facefocus
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import com.pixielook.facefocus.ui.components.NavigationContainer
 import com.pixielook.facefocus.ui.screens.*
 import com.pixielook.facefocus.ui.theme.PixieLookTheme
 
 enum class AppStep {
     SPLASH,
     INTRO1, INTRO2, INTRO3, INTRO4, INTRO5, INTRO6, INTRO7, INTRO9, INTRO10, INTRO11, INTRO12,
-    MAIN_SCREEN, SHOP_SCREEN, ACCOUNT_SCREEN, MESSAGE_SCREEN,
+    MAIN_SCREEN, SHOP_SCREEN, ACCOUNT_SCREEN, MESSAGE_SCREEN, REWARDS_SCREEN,
     VIRTUAL_TRY_ONS, TOP_MENTOR, SKIN_ANALYSE, MENTOR_PROFILE, MENTOR_DETAILS, MENTOR_BOOKING, MENTOR_REVIEW,
     SKIN_REC_MASSAGE, SKIN_REC_PRODUCTS,
     HAIR_STYLE_FOR_MEN_1, HAIR_STYLE_FOR_MEN_2, HAIR_STYLE_FOR_MEN_3,
@@ -31,64 +33,109 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             PixieLookTheme {
-                var currentStep by remember { mutableStateOf(AppStep.SPLASH) }
+                val navigationHistory = remember { mutableStateListOf(AppStep.SPLASH) }
+                val currentStep = navigationHistory.last()
+                var isBackNavigation by remember { mutableStateOf(false) }
+
+                fun navigateTo(step: AppStep, clearHistory: Boolean = false) {
+                    isBackNavigation = false
+                    if (clearHistory) {
+                        navigationHistory.clear()
+                    }
+                    navigationHistory.add(step)
+                }
+
+                fun goBack() {
+                    // Only allow going back if there's more than one screen in history
+                    // and we aren't currently on the first screen after Splash (Intro1)
+                    if (navigationHistory.size > 1) {
+                        isBackNavigation = true
+                        navigationHistory.removeAt(navigationHistory.size - 1)
+                    }
+                }
+
+                // Handle physical back button / system back gesture
+                BackHandler(enabled = navigationHistory.size > 1) {
+                    goBack()
+                }
 
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    when (currentStep) {
-                        AppStep.SPLASH -> SplashScreen { currentStep = AppStep.INTRO1 }
-                        
-                        AppStep.INTRO1 -> IntroScreen1 { currentStep = AppStep.INTRO2 }
-                        AppStep.INTRO2 -> IntroScreen2 { currentStep = AppStep.INTRO3 }
-                        AppStep.INTRO3 -> IntroScreen3 { currentStep = AppStep.INTRO4 }
-                        AppStep.INTRO4 -> IntroScreen4 { currentStep = AppStep.INTRO5 }
-                        AppStep.INTRO5 -> IntroScreen5 { currentStep = AppStep.INTRO6 }
-                        AppStep.INTRO6 -> IntroScreen6 { currentStep = AppStep.INTRO7 }
-                        AppStep.INTRO7 -> IntroScreen7 { currentStep = AppStep.INTRO9 }
-                        AppStep.INTRO9 -> IntroScreen9 { currentStep = AppStep.INTRO10 }
-                        AppStep.INTRO10 -> IntroScreen10 { currentStep = AppStep.INTRO11 }
-                        AppStep.INTRO11 -> IntroScreen11 { currentStep = AppStep.INTRO12 }
-                        AppStep.INTRO12 -> IntroScreen12 { currentStep = AppStep.MAIN_SCREEN }
+                    NavigationContainer(
+                        targetState = currentStep,
+                        isBack = isBackNavigation
+                    ) { step ->
+                        when (step) {
+                            AppStep.SPLASH -> SplashScreen { 
+                                // Moving to Intro1 replaces Splash in history
+                                navigateTo(AppStep.INTRO1, clearHistory = true) 
+                            }
+                            
+                            AppStep.INTRO1 -> IntroScreen1(onNext = { navigateTo(AppStep.INTRO2) }, onBack = { /* No back from first screen */ })
+                            AppStep.INTRO2 -> IntroScreen2(onNext = { navigateTo(AppStep.INTRO3) }, onBack = { goBack() })
+                            AppStep.INTRO3 -> IntroScreen3(onNext = { navigateTo(AppStep.INTRO4) }, onBack = { goBack() })
+                            AppStep.INTRO4 -> IntroScreen4(onNext = { navigateTo(AppStep.INTRO5) }, onBack = { goBack() })
+                            AppStep.INTRO5 -> IntroScreen5(onNext = { navigateTo(AppStep.INTRO6) }, onBack = { goBack() })
+                            AppStep.INTRO6 -> IntroScreen6(onNext = { navigateTo(AppStep.INTRO7) }, onBack = { goBack() })
+                            AppStep.INTRO7 -> IntroScreen7(onNext = { navigateTo(AppStep.INTRO9) }, onBack = { goBack() })
+                            AppStep.INTRO9 -> IntroScreen9(onNext = { navigateTo(AppStep.INTRO10) }, onBack = { goBack() })
+                            AppStep.INTRO10 -> IntroScreen10(onNext = { navigateTo(AppStep.INTRO11) }, onBack = { goBack() })
+                            AppStep.INTRO11 -> IntroScreen11(onNext = { navigateTo(AppStep.INTRO12) }, onBack = { goBack() })
+                            AppStep.INTRO12 -> IntroScreen12(onNext = { navigateTo(AppStep.MAIN_SCREEN) }, onBack = { goBack() })
 
-                        AppStep.MAIN_SCREEN -> MainScreen { currentStep = AppStep.SHOP_SCREEN }
-                        AppStep.SHOP_SCREEN -> ShopScreen { currentStep = AppStep.ACCOUNT_SCREEN }
-                        AppStep.ACCOUNT_SCREEN -> AccountScreen { currentStep = AppStep.MESSAGE_SCREEN }
-                        AppStep.MESSAGE_SCREEN -> MessageScreen { currentStep = AppStep.VIRTUAL_TRY_ONS }
+                            AppStep.MAIN_SCREEN -> MainScreen(
+                                onNext = { navigateTo(AppStep.SHOP_SCREEN) },
+                                onBack = { goBack() },
+                                onNavigateFaceFitness = { navigateTo(AppStep.FACE_FOCUS_SELECTION) },
+                                onNavigateRewards = { navigateTo(AppStep.REWARDS_SCREEN) },
+                                onNavigateShop = { navigateTo(AppStep.SHOP_SCREEN) },
+                                onNavigateFashionNews = { navigateTo(AppStep.TOP_MENTOR) },
+                                onNavigateStudy = { navigateTo(AppStep.SKIN_ANALYSE) },
+                                onNavigateHairstyles = { navigateTo(AppStep.GENDER_SEL_MOCK) },
+                                onNavigateVirtualTryOn = { navigateTo(AppStep.VIRTUAL_TRY_ONS) },
+                                onNavigateAccount = { navigateTo(AppStep.ACCOUNT_SCREEN) },
+                                onNavigateMessage = { navigateTo(AppStep.MESSAGE_SCREEN) }
+                            )
+                            AppStep.SHOP_SCREEN -> ShopScreen(onNext = { navigateTo(AppStep.ACCOUNT_SCREEN) }, onBack = { goBack() })
+                            AppStep.ACCOUNT_SCREEN -> AccountScreen(onNext = { navigateTo(AppStep.MESSAGE_SCREEN) }, onBack = { goBack() })
+                            AppStep.MESSAGE_SCREEN -> MessageScreen(onNext = { navigateTo(AppStep.REWARDS_SCREEN) }, onBack = { goBack() })
+                            AppStep.REWARDS_SCREEN -> RewardsScreen(onNext = { navigateTo(AppStep.VIRTUAL_TRY_ONS) }, onBack = { goBack() })
 
-                        AppStep.VIRTUAL_TRY_ONS -> VirtualTryOnsScreen { currentStep = AppStep.TOP_MENTOR }
-                        AppStep.TOP_MENTOR -> TopMentorScreen { currentStep = AppStep.SKIN_ANALYSE }
-                        AppStep.SKIN_ANALYSE -> SkinAnalyseScreen { currentStep = AppStep.MENTOR_PROFILE }
-                        AppStep.MENTOR_PROFILE -> MentorProfileScreen { currentStep = AppStep.MENTOR_DETAILS }
-                        AppStep.MENTOR_DETAILS -> MentorDetailsScreen { currentStep = AppStep.MENTOR_BOOKING }
-                        AppStep.MENTOR_BOOKING -> MentorBookingScreen { currentStep = AppStep.MENTOR_REVIEW }
-                        AppStep.MENTOR_REVIEW -> MentorReviewScreen { currentStep = AppStep.SKIN_REC_MASSAGE }
+                            AppStep.VIRTUAL_TRY_ONS -> VirtualTryOnsScreen(onNext = { navigateTo(AppStep.TOP_MENTOR) }, onBack = { goBack() })
+                            AppStep.TOP_MENTOR -> TopMentorScreen(onNext = { navigateTo(AppStep.SKIN_ANALYSE) }, onBack = { goBack() })
+                            AppStep.SKIN_ANALYSE -> SkinAnalyseScreen(onNext = { navigateTo(AppStep.MENTOR_PROFILE) }, onBack = { goBack() })
+                            AppStep.MENTOR_PROFILE -> MentorProfileScreen(onNext = { navigateTo(AppStep.MENTOR_DETAILS) }, onBack = { goBack() })
+                            AppStep.MENTOR_DETAILS -> MentorDetailsScreen(onNext = { navigateTo(AppStep.MENTOR_BOOKING) }, onBack = { goBack() })
+                            AppStep.MENTOR_BOOKING -> MentorBookingScreen(onNext = { navigateTo(AppStep.MENTOR_REVIEW) }, onBack = { goBack() })
+                            AppStep.MENTOR_REVIEW -> MentorReviewScreen(onNext = { navigateTo(AppStep.SKIN_REC_MASSAGE) }, onBack = { goBack() })
 
-                        AppStep.SKIN_REC_MASSAGE -> SkinRecomendationMassageScreen { currentStep = AppStep.SKIN_REC_PRODUCTS }
-                        AppStep.SKIN_REC_PRODUCTS -> SkinRecomendationProductsScreen { currentStep = AppStep.HAIR_STYLE_FOR_MEN_1 }
+                            AppStep.SKIN_REC_MASSAGE -> SkinRecomendationMassageScreen(onNext = { navigateTo(AppStep.SKIN_REC_PRODUCTS) }, onBack = { goBack() })
+                            AppStep.SKIN_REC_PRODUCTS -> SkinRecomendationProductsScreen(onNext = { navigateTo(AppStep.HAIR_STYLE_FOR_MEN_1) }, onBack = { goBack() })
 
-                        AppStep.HAIR_STYLE_FOR_MEN_1 -> HairStyleForMenScreen1 { currentStep = AppStep.HAIR_STYLE_FOR_MEN_2 }
-                        AppStep.HAIR_STYLE_FOR_MEN_2 -> HairStyleForMenScreen2 { currentStep = AppStep.HAIR_STYLE_FOR_MEN_3 }
-                        AppStep.HAIR_STYLE_FOR_MEN_3 -> HairStyleForMenScreen3 { currentStep = AppStep.HAIR_STYLE_FOR_WOMEN }
+                            AppStep.HAIR_STYLE_FOR_MEN_1 -> HairStyleForMenScreen1(onNext = { navigateTo(AppStep.HAIR_STYLE_FOR_MEN_2) }, onBack = { goBack() })
+                            AppStep.HAIR_STYLE_FOR_MEN_2 -> HairStyleForMenScreen2(onNext = { navigateTo(AppStep.HAIR_STYLE_FOR_MEN_3) }, onBack = { goBack() })
+                            AppStep.HAIR_STYLE_FOR_MEN_3 -> HairStyleForMenScreen3(onNext = { navigateTo(AppStep.HAIR_STYLE_FOR_WOMEN) }, onBack = { goBack() })
 
-                        AppStep.HAIR_STYLE_FOR_WOMEN -> HairStyleForWomeScreen { currentStep = AppStep.HAIR_STYLE_SEARCH_MEN }
-                        AppStep.HAIR_STYLE_SEARCH_MEN -> HairStyleSearchForMenScreen { currentStep = AppStep.HAIR_STYLE_SEARCH_WOMEN }
-                        AppStep.HAIR_STYLE_SEARCH_WOMEN -> HairStyleSearchForWomeScreen { currentStep = AppStep.HAIR_STYLE_SEARCH_SEL_MEN }
-                        
-                        AppStep.HAIR_STYLE_SEARCH_SEL_MEN -> HairStyleSearchSelectionForMenScreen { currentStep = AppStep.HAIR_STYLE_SEARCH_SEL_WOMEN }
-                        AppStep.HAIR_STYLE_SEARCH_SEL_WOMEN -> HairStyleSearchSelectionForWomenScreen { currentStep = AppStep.HAIR_STYLE_ACCESSORIES }
-                        
-                        AppStep.HAIR_STYLE_ACCESSORIES -> HairStyleWithAccessoriesScreen { currentStep = AppStep.HAIR_STYLE_ELECTRONIC }
-                        AppStep.HAIR_STYLE_ELECTRONIC -> HairStyleWithElectronicDevicesScreen { currentStep = AppStep.FACE_FOCUS_SELECTION }
+                            AppStep.HAIR_STYLE_FOR_WOMEN -> HairStyleForWomeScreen(onNext = { navigateTo(AppStep.HAIR_STYLE_SEARCH_MEN) }, onBack = { goBack() })
+                            AppStep.HAIR_STYLE_SEARCH_MEN -> HairStyleSearchForMenScreen(onNext = { navigateTo(AppStep.HAIR_STYLE_SEARCH_WOMEN) }, onBack = { goBack() })
+                            AppStep.HAIR_STYLE_SEARCH_WOMEN -> HairStyleSearchForWomeScreen(onNext = { navigateTo(AppStep.HAIR_STYLE_SEARCH_SEL_MEN) }, onBack = { goBack() })
+                            
+                            AppStep.HAIR_STYLE_SEARCH_SEL_MEN -> HairStyleSearchSelectionForMenScreen(onNext = { navigateTo(AppStep.HAIR_STYLE_SEARCH_SEL_WOMEN) }, onBack = { goBack() })
+                            AppStep.HAIR_STYLE_SEARCH_SEL_WOMEN -> HairStyleSearchSelectionForWomenScreen(onNext = { navigateTo(AppStep.HAIR_STYLE_ACCESSORIES) }, onBack = { goBack() })
+                            
+                            AppStep.HAIR_STYLE_ACCESSORIES -> HairStyleWithAccessoriesScreen(onNext = { navigateTo(AppStep.HAIR_STYLE_ELECTRONIC) }, onBack = { goBack() })
+                            AppStep.HAIR_STYLE_ELECTRONIC -> HairStyleWithElectronicDevicesScreen(onNext = { navigateTo(AppStep.FACE_FOCUS_SELECTION) }, onBack = { goBack() })
 
-                        AppStep.FACE_FOCUS_SELECTION -> FaceFocusSelectionScreen { currentStep = AppStep.FACE_FOCUS_AFTER_SEL }
-                        AppStep.FACE_FOCUS_AFTER_SEL -> FaceFocusAfterSelectionScreen { currentStep = AppStep.FACE_FOCUS_CONGRATS }
-                        AppStep.FACE_FOCUS_CONGRATS -> FaceFocusCongratulationScreen { currentStep = AppStep.GENDER_SEL_MOCK }
-                        
-                        AppStep.GENDER_SEL_MOCK -> HairStyleGenderSelectionScreenMock { currentStep = AppStep.TIME_SEL_MOCK }
-                        AppStep.TIME_SEL_MOCK -> HairStyleTimeSelectionScreenMock { currentStep = AppStep.TYPE_SEL_MOCK }
-                        AppStep.TYPE_SEL_MOCK -> HairStyleTypeSelectionScreenMock { currentStep = AppStep.SPLASH }
+                            AppStep.FACE_FOCUS_SELECTION -> FaceFocusSelectionScreen(onNext = { navigateTo(AppStep.FACE_FOCUS_AFTER_SEL) }, onBack = { goBack() })
+                            AppStep.FACE_FOCUS_AFTER_SEL -> FaceFocusAfterSelectionScreen(onNext = { navigateTo(AppStep.FACE_FOCUS_CONGRATS) }, onBack = { goBack() })
+                            AppStep.FACE_FOCUS_CONGRATS -> FaceFocusCongratulationScreen(onNext = { navigateTo(AppStep.GENDER_SEL_MOCK) }, onBack = { goBack() })
+                            
+                            AppStep.GENDER_SEL_MOCK -> HairStyleGenderSelectionScreenMock(onNext = { navigateTo(AppStep.TIME_SEL_MOCK) }, onBack = { goBack() })
+                            AppStep.TIME_SEL_MOCK -> HairStyleTimeSelectionScreenMock(onNext = { navigateTo(AppStep.TYPE_SEL_MOCK) }, onBack = { goBack() })
+                            AppStep.TYPE_SEL_MOCK -> HairStyleTypeSelectionScreenMock(onNext = { navigateTo(AppStep.SPLASH, clearHistory = true) }, onBack = { goBack() })
+                        }
                     }
                 }
             }

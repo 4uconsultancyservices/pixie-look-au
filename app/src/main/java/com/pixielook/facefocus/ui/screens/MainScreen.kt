@@ -4,13 +4,15 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Icon
@@ -24,15 +26,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.pixielook.facefocus.R
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MainScreen(
-    onNext: () -> Unit, // Fallback for general tap
     onBack: () -> Unit,
     onNavigateFaceFitness: () -> Unit,
     onNavigateRewards: () -> Unit,
@@ -42,7 +43,45 @@ fun MainScreen(
     onNavigateHairstyles: () -> Unit,
     onNavigateVirtualTryOn: () -> Unit,
     onNavigateAccount: () -> Unit,
-    onNavigateMessage: () -> Unit
+    onNavigateMessage: () -> Unit // Kept for compatibility if needed, but slider handles it now
+) {
+    val pagerState = rememberPagerState()
+
+    HorizontalPager(
+        pageCount = 2,
+        state = pagerState,
+        modifier = Modifier.fillMaxSize()
+    ) { page ->
+        when (page) {
+            0 -> MainContent(
+                onBack = onBack,
+                onNavigateFaceFitness = onNavigateFaceFitness,
+                onNavigateRewards = onNavigateRewards,
+                onNavigateShop = onNavigateShop,
+                onNavigateFashionNews = onNavigateFashionNews,
+                onNavigateStudy = onNavigateStudy,
+                onNavigateHairstyles = onNavigateHairstyles,
+                onNavigateVirtualTryOn = onNavigateVirtualTryOn,
+                onNavigateAccount = onNavigateAccount
+            )
+            1 -> MessageContent(
+                onBack = { /* Could use pagerState.animateScrollToPage(0) */ }
+            )
+        }
+    }
+}
+
+@Composable
+fun MainContent(
+    onBack: () -> Unit,
+    onNavigateFaceFitness: () -> Unit,
+    onNavigateRewards: () -> Unit,
+    onNavigateShop: () -> Unit,
+    onNavigateFashionNews: () -> Unit,
+    onNavigateStudy: () -> Unit,
+    onNavigateHairstyles: () -> Unit,
+    onNavigateVirtualTryOn: () -> Unit,
+    onNavigateAccount: () -> Unit
 ) {
     val imageAlpha = remember { Animatable(0f) }
 
@@ -53,15 +92,7 @@ fun MainScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black)
-            .pointerInput(Unit) {
-                detectHorizontalDragGestures { change, dragAmount ->
-                    // Slide Right (dragAmount > 0) opens MessageScreen
-                    if (dragAmount > 50) {
-                        onNavigateMessage()
-                    }
-                }
-            },
+            .background(Color.Black),
         contentAlignment = Alignment.Center
     ) {
         // Background Image
@@ -117,11 +148,6 @@ fun MainScreen(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .clickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null,
-                            onClick = onNext
-                        )
                 )
             }
         }
@@ -137,6 +163,31 @@ fun MainScreen(
                 tint = Color.White
             )
         }
+    }
+}
+
+@Composable
+fun MessageContent(
+    onBack: () -> Unit
+) {
+    val imageAlpha = remember { Animatable(0f) }
+
+    LaunchedEffect(Unit) {
+        imageAlpha.animateTo(1f, tween(800, easing = FastOutSlowInEasing))
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black),
+        contentAlignment = Alignment.Center
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.message_screen),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize().alpha(imageAlpha.value),
+            contentScale = ContentScale.Fit
+        )
     }
 }
 

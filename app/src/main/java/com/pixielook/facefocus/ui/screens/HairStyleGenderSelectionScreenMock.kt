@@ -30,13 +30,10 @@ import com.pixielook.facefocus.R
 
 @Composable
 fun HairStyleGenderSelectionScreenMock(
-    onNext: () -> Unit,
+    onGenderSelected: (Boolean) -> Unit, // true for Men, false for Women
     onBack: () -> Unit
 ) {
     val imageAlpha = remember { Animatable(0f) }
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-    val scale by animateFloatAsState(if (isPressed) 0.96f else 1f, label = "scale")
 
     LaunchedEffect(Unit) {
         imageAlpha.animateTo(1f, tween(800, easing = FastOutSlowInEasing))
@@ -45,16 +42,7 @@ fun HairStyleGenderSelectionScreenMock(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black)
-            .graphicsLayer {
-                scaleX = scale
-                scaleY = scale
-            }
-            .clickable(
-                interactionSource = interactionSource,
-                indication = null,
-                onClick = onNext
-            ),
+            .background(Color.Black),
         contentAlignment = Alignment.Center
     ) {
         Image(
@@ -63,6 +51,31 @@ fun HairStyleGenderSelectionScreenMock(
             modifier = Modifier.fillMaxSize().alpha(imageAlpha.value),
             contentScale = ContentScale.Fit
         )
+
+        Row(modifier = Modifier.fillMaxSize()) {
+            // Men Selection Area (Left half)
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .weight(1f)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = { onGenderSelected(true) }
+                    )
+            )
+            // Women Selection Area (Right half)
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .weight(1f)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = { onGenderSelected(false) }
+                    )
+            )
+        }
 
         IconButton(
             onClick = onBack,

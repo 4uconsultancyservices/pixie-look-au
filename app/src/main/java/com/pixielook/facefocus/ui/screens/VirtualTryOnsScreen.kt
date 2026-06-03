@@ -30,7 +30,6 @@ import com.pixielook.facefocus.R
 
 @Composable
 fun VirtualTryOnsScreen(
-    onNext: () -> Unit,
     onBack: () -> Unit
 ) {
     val imageAlpha = remember { Animatable(0f) }
@@ -49,12 +48,7 @@ fun VirtualTryOnsScreen(
             .graphicsLayer {
                 scaleX = scale
                 scaleY = scale
-            }
-            .clickable(
-                interactionSource = interactionSource,
-                indication = null,
-                onClick = onNext
-            ),
+            },
         contentAlignment = Alignment.Center
     ) {
         Image(

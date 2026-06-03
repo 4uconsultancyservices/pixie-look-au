@@ -30,7 +30,6 @@ import com.pixielook.facefocus.R
 
 @Composable
 fun ShopScreen(
-    onNext: () -> Unit,
     onBack: () -> Unit
 ) {
     val imageAlpha = remember { Animatable(0f) }
@@ -49,12 +48,7 @@ fun ShopScreen(
             .graphicsLayer {
                 scaleX = scale
                 scaleY = scale
-            }
-            .clickable(
-                interactionSource = interactionSource,
-                indication = null,
-                onClick = onNext
-            ),
+            },
         contentAlignment = Alignment.Center
     ) {
         Image(

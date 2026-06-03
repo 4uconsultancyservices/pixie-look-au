@@ -31,7 +31,8 @@ import com.pixielook.facefocus.R
 @Composable
 fun HairStyleForWomeScreen(
     onNext: () -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onTutorial: () -> Unit
 ) {
     val imageAlpha = remember { Animatable(0f) }
     val interactionSource = remember { MutableInteractionSource() }
@@ -49,19 +50,29 @@ fun HairStyleForWomeScreen(
             .graphicsLayer {
                 scaleX = scale
                 scaleY = scale
-            }
-            .clickable(
-                interactionSource = interactionSource,
-                indication = null,
-                onClick = onNext
-            ),
+            },
         contentAlignment = Alignment.Center
     ) {
         Image(
             painter = painterResource(id = R.drawable.hair_style_forwome_screen),
             contentDescription = null,
-            modifier = Modifier.fillMaxSize().alpha(imageAlpha.value),
+            modifier = Modifier.fillMaxSize().alpha(imageAlpha.value).clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onNext
+            ),
             contentScale = ContentScale.Fit
+        )
+
+        // Transparent "Begin" Button
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 80.dp)
+                .fillMaxWidth(0.5f)
+                .height(80.dp)
+                .background(Color.Transparent)
+                .clickable { onTutorial() }
         )
 
         IconButton(

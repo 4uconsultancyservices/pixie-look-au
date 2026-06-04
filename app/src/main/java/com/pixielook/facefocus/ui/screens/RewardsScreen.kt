@@ -30,7 +30,6 @@ import com.pixielook.facefocus.R
 
 @Composable
 fun RewardsScreen(
-    onNext: () -> Unit,
     onBack: () -> Unit
 ) {
     val imageAlpha = remember { Animatable(0f) }
@@ -49,16 +48,11 @@ fun RewardsScreen(
             .graphicsLayer {
                 scaleX = scale
                 scaleY = scale
-            }
-            .clickable(
-                interactionSource = interactionSource,
-                indication = null,
-                onClick = onNext
-            ),
+            },
         contentAlignment = Alignment.Center
     ) {
         Image(
-            painter = painterResource(id = R.drawable.message_screen),
+            painter = painterResource(id = R.drawable.account_screen),
             contentDescription = null,
             modifier = Modifier.fillMaxSize().alpha(imageAlpha.value),
             contentScale = ContentScale.Fit

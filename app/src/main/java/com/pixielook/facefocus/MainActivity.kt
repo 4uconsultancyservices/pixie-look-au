@@ -11,12 +11,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import com.pixielook.facefocus.ui.components.NavigationContainer
 import com.pixielook.facefocus.ui.screens.*
+import com.pixielook.facefocus.ui.tutorial.TutorialScreen
 import com.pixielook.facefocus.ui.theme.PixieLookTheme
 
 enum class AppStep {
     SPLASH,
     INTRO1, INTRO2, INTRO3, INTRO4, INTRO5, INTRO6, INTRO7, INTRO9, INTRO10, INTRO11, INTRO12,
-    MAIN_SCREEN, SHOP_SCREEN, ACCOUNT_SCREEN, MESSAGE_SCREEN, REWARDS_SCREEN,
+    MAIN_SCREEN, SHOP_SCREEN, ACCOUNT_SCREEN, REWARDS_SCREEN,
     VIRTUAL_TRY_ONS, TOP_MENTOR, SKIN_ANALYSE, MENTOR_PROFILE, MENTOR_DETAILS, MENTOR_BOOKING, MENTOR_REVIEW,
     SKIN_REC_MASSAGE, SKIN_REC_PRODUCTS,
     HAIR_STYLE_FOR_MEN_1, HAIR_STYLE_FOR_MEN_2, HAIR_STYLE_FOR_MEN_3,
@@ -24,8 +25,9 @@ enum class AppStep {
     HAIR_STYLE_SEARCH_MEN, HAIR_STYLE_SEARCH_WOMEN,
     HAIR_STYLE_SEARCH_SEL_MEN, HAIR_STYLE_SEARCH_SEL_WOMEN,
     HAIR_STYLE_ACCESSORIES, HAIR_STYLE_ELECTRONIC,
-    FACE_FOCUS_SELECTION, FACE_FOCUS_AFTER_SEL, FACE_FOCUS_CONGRATS,
-    GENDER_SEL_MOCK, TIME_SEL_MOCK, TYPE_SEL_MOCK
+    FACE_FOCUS_SCREEN,FACE_FOCUS_SELECTION, FACE_FOCUS_AFTER_SEL, FACE_FOCUS_ONGOING_SCREEN,FACE_FOCUS_COMPELETED_SCREEN, FACE_FOCUS_CONGRATS,
+    GENDER_SEL_MOCK, TIME_SEL_MOCK, TYPE_SEL_MOCK,
+    TUTORIAL_SCREEN
 }
 
 class MainActivity : ComponentActivity() {
@@ -36,6 +38,7 @@ class MainActivity : ComponentActivity() {
                 val navigationHistory = remember { mutableStateListOf(AppStep.SPLASH) }
                 val currentStep = navigationHistory.last()
                 var isBackNavigation by remember { mutableStateOf(false) }
+                var isSelectedGenderMen by remember { mutableStateOf(true) }
 
                 fun navigateTo(step: AppStep, clearHistory: Boolean = false) {
                     isBackNavigation = false
@@ -86,39 +89,37 @@ class MainActivity : ComponentActivity() {
                             AppStep.INTRO12 -> IntroScreen12(onNext = { navigateTo(AppStep.MAIN_SCREEN) }, onBack = { goBack() })
 
                             AppStep.MAIN_SCREEN -> MainScreen(
-                                onNext = { navigateTo(AppStep.SHOP_SCREEN) },
                                 onBack = { goBack() },
-                                onNavigateFaceFitness = { navigateTo(AppStep.FACE_FOCUS_SELECTION) },
+                                onNavigateFaceFitness = { navigateTo(AppStep.FACE_FOCUS_SCREEN) },
                                 onNavigateRewards = { navigateTo(AppStep.REWARDS_SCREEN) },
                                 onNavigateShop = { navigateTo(AppStep.SHOP_SCREEN) },
                                 onNavigateFashionNews = { navigateTo(AppStep.TOP_MENTOR) },
-                                onNavigateStudy = { navigateTo(AppStep.SKIN_ANALYSE) },
+                                onNavigateStudy = { navigateTo(AppStep.TOP_MENTOR) },
                                 onNavigateHairstyles = { navigateTo(AppStep.GENDER_SEL_MOCK) },
                                 onNavigateVirtualTryOn = { navigateTo(AppStep.VIRTUAL_TRY_ONS) },
                                 onNavigateAccount = { navigateTo(AppStep.ACCOUNT_SCREEN) },
-                                onNavigateMessage = { navigateTo(AppStep.MESSAGE_SCREEN) }
+                                onNavigateMessage = { /* Handled by slider internally */ }
                             )
-                            AppStep.SHOP_SCREEN -> ShopScreen(onNext = { navigateTo(AppStep.ACCOUNT_SCREEN) }, onBack = { goBack() })
-                            AppStep.ACCOUNT_SCREEN -> AccountScreen(onNext = { navigateTo(AppStep.MESSAGE_SCREEN) }, onBack = { goBack() })
-                            AppStep.MESSAGE_SCREEN -> MessageScreen(onNext = { navigateTo(AppStep.REWARDS_SCREEN) }, onBack = { goBack() })
-                            AppStep.REWARDS_SCREEN -> RewardsScreen(onNext = { navigateTo(AppStep.VIRTUAL_TRY_ONS) }, onBack = { goBack() })
+                            AppStep.SHOP_SCREEN -> ShopScreen( onBack = { goBack() })
+                            AppStep.ACCOUNT_SCREEN -> AccountScreen(onNext = { navigateTo(AppStep.REWARDS_SCREEN) }, onBack = { goBack() })
+                            AppStep.REWARDS_SCREEN -> RewardsScreen( onBack = { goBack() })
 
-                            AppStep.VIRTUAL_TRY_ONS -> VirtualTryOnsScreen(onNext = { navigateTo(AppStep.TOP_MENTOR) }, onBack = { goBack() })
-                            AppStep.TOP_MENTOR -> TopMentorScreen(onNext = { navigateTo(AppStep.SKIN_ANALYSE) }, onBack = { goBack() })
-                            AppStep.SKIN_ANALYSE -> SkinAnalyseScreen(onNext = { navigateTo(AppStep.MENTOR_PROFILE) }, onBack = { goBack() })
+                            AppStep.VIRTUAL_TRY_ONS -> VirtualTryOnsScreen( onBack = { goBack() })
+                            AppStep.TOP_MENTOR -> TopMentorScreen(onNext = { navigateTo(AppStep.MENTOR_PROFILE) }, onBack = { goBack() })
                             AppStep.MENTOR_PROFILE -> MentorProfileScreen(onNext = { navigateTo(AppStep.MENTOR_DETAILS) }, onBack = { goBack() })
-                            AppStep.MENTOR_DETAILS -> MentorDetailsScreen(onNext = { navigateTo(AppStep.MENTOR_BOOKING) }, onBack = { goBack() })
-                            AppStep.MENTOR_BOOKING -> MentorBookingScreen(onNext = { navigateTo(AppStep.MENTOR_REVIEW) }, onBack = { goBack() })
-                            AppStep.MENTOR_REVIEW -> MentorReviewScreen(onNext = { navigateTo(AppStep.SKIN_REC_MASSAGE) }, onBack = { goBack() })
+                            AppStep.MENTOR_DETAILS -> MentorDetailsScreen(onNext = { navigateTo(AppStep.MENTOR_REVIEW) }, onBack = { goBack() })
+                            AppStep.MENTOR_REVIEW -> MentorReviewScreen(onNext = { navigateTo(AppStep.MENTOR_BOOKING) }, onBack = { goBack() })
+                            AppStep.MENTOR_BOOKING -> MentorBookingScreen(onNext = { navigateTo(AppStep.MAIN_SCREEN) }, onBack = { goBack() })
+                            AppStep.SKIN_ANALYSE -> SkinAnalyseScreen(onNext = { navigateTo(AppStep.MENTOR_PROFILE) }, onBack = { goBack() })
 
                             AppStep.SKIN_REC_MASSAGE -> SkinRecomendationMassageScreen(onNext = { navigateTo(AppStep.SKIN_REC_PRODUCTS) }, onBack = { goBack() })
                             AppStep.SKIN_REC_PRODUCTS -> SkinRecomendationProductsScreen(onNext = { navigateTo(AppStep.HAIR_STYLE_FOR_MEN_1) }, onBack = { goBack() })
 
-                            AppStep.HAIR_STYLE_FOR_MEN_1 -> HairStyleForMenScreen1(onNext = { navigateTo(AppStep.HAIR_STYLE_FOR_MEN_2) }, onBack = { goBack() })
+                            AppStep.HAIR_STYLE_FOR_MEN_1 -> HairStyleForMenScreen1(onNext = { navigateTo(AppStep.HAIR_STYLE_FOR_MEN_2) }, onBack = { goBack() }, onTutorial = { navigateTo(AppStep.TUTORIAL_SCREEN) })
                             AppStep.HAIR_STYLE_FOR_MEN_2 -> HairStyleForMenScreen2(onNext = { navigateTo(AppStep.HAIR_STYLE_FOR_MEN_3) }, onBack = { goBack() })
                             AppStep.HAIR_STYLE_FOR_MEN_3 -> HairStyleForMenScreen3(onNext = { navigateTo(AppStep.HAIR_STYLE_FOR_WOMEN) }, onBack = { goBack() })
 
-                            AppStep.HAIR_STYLE_FOR_WOMEN -> HairStyleForWomeScreen(onNext = { navigateTo(AppStep.HAIR_STYLE_SEARCH_MEN) }, onBack = { goBack() })
+                            AppStep.HAIR_STYLE_FOR_WOMEN -> HairStyleForWomeScreen(onNext = { navigateTo(AppStep.HAIR_STYLE_SEARCH_MEN) }, onBack = { goBack() }, onTutorial = { navigateTo(AppStep.TUTORIAL_SCREEN) })
                             AppStep.HAIR_STYLE_SEARCH_MEN -> HairStyleSearchForMenScreen(onNext = { navigateTo(AppStep.HAIR_STYLE_SEARCH_WOMEN) }, onBack = { goBack() })
                             AppStep.HAIR_STYLE_SEARCH_WOMEN -> HairStyleSearchForWomeScreen(onNext = { navigateTo(AppStep.HAIR_STYLE_SEARCH_SEL_MEN) }, onBack = { goBack() })
                             
@@ -126,15 +127,35 @@ class MainActivity : ComponentActivity() {
                             AppStep.HAIR_STYLE_SEARCH_SEL_WOMEN -> HairStyleSearchSelectionForWomenScreen(onNext = { navigateTo(AppStep.HAIR_STYLE_ACCESSORIES) }, onBack = { goBack() })
                             
                             AppStep.HAIR_STYLE_ACCESSORIES -> HairStyleWithAccessoriesScreen(onNext = { navigateTo(AppStep.HAIR_STYLE_ELECTRONIC) }, onBack = { goBack() })
-                            AppStep.HAIR_STYLE_ELECTRONIC -> HairStyleWithElectronicDevicesScreen(onNext = { navigateTo(AppStep.FACE_FOCUS_SELECTION) }, onBack = { goBack() })
+                            AppStep.HAIR_STYLE_ELECTRONIC -> HairStyleWithElectronicDevicesScreen(
+                                onNext = { 
+                                    if (isSelectedGenderMen) {
+                                        navigateTo(AppStep.HAIR_STYLE_SEARCH_MEN)
+                                    } else {
+                                        navigateTo(AppStep.HAIR_STYLE_SEARCH_WOMEN)
+                                    }
+                                }, 
+                                onBack = { goBack() }
+                            )
 
+                            AppStep.FACE_FOCUS_SCREEN -> FaceFocusScreenMock(onNext = { navigateTo(AppStep.FACE_FOCUS_SELECTION ) }, onBack = { goBack() })
                             AppStep.FACE_FOCUS_SELECTION -> FaceFocusSelectionScreen(onNext = { navigateTo(AppStep.FACE_FOCUS_AFTER_SEL) }, onBack = { goBack() })
-                            AppStep.FACE_FOCUS_AFTER_SEL -> FaceFocusAfterSelectionScreen(onNext = { navigateTo(AppStep.FACE_FOCUS_CONGRATS) }, onBack = { goBack() })
-                            AppStep.FACE_FOCUS_CONGRATS -> FaceFocusCongratulationScreen(onNext = { navigateTo(AppStep.GENDER_SEL_MOCK) }, onBack = { goBack() })
-                            
-                            AppStep.GENDER_SEL_MOCK -> HairStyleGenderSelectionScreenMock(onNext = { navigateTo(AppStep.TIME_SEL_MOCK) }, onBack = { goBack() })
+                            AppStep.FACE_FOCUS_AFTER_SEL -> FaceFocusAfterSelectionScreen(onNext = { navigateTo(AppStep.FACE_FOCUS_ONGOING_SCREEN) }, onBack = { goBack() })
+                            AppStep.FACE_FOCUS_ONGOING_SCREEN -> FaceFocusOngoingScreen(onNext = { navigateTo(AppStep.FACE_FOCUS_COMPELETED_SCREEN) }, onBack = { goBack() })
+                            AppStep.FACE_FOCUS_COMPELETED_SCREEN -> FaceFocusCompeletedScreen(onNext = { navigateTo(AppStep.FACE_FOCUS_CONGRATS) }, onBack = { goBack() })
+                            AppStep.FACE_FOCUS_CONGRATS -> FaceFocusCongratulationScreen(onNext = { navigateTo(AppStep.MAIN_SCREEN) }, onBack = { goBack() })
+
+                            AppStep.GENDER_SEL_MOCK -> HairStyleGenderSelectionScreenMock(
+                                onGenderSelected = { isMen ->
+                                    isSelectedGenderMen = isMen
+                                    navigateTo(AppStep.TIME_SEL_MOCK)
+                                },
+                                onBack = { goBack() }
+                            )
                             AppStep.TIME_SEL_MOCK -> HairStyleTimeSelectionScreenMock(onNext = { navigateTo(AppStep.TYPE_SEL_MOCK) }, onBack = { goBack() })
                             AppStep.TYPE_SEL_MOCK -> HairStyleTypeSelectionScreenMock(onNext = { navigateTo(AppStep.SPLASH, clearHistory = true) }, onBack = { goBack() })
+                            
+                            AppStep.TUTORIAL_SCREEN -> TutorialScreen(onBack = { goBack() })
                         }
                     }
                 }

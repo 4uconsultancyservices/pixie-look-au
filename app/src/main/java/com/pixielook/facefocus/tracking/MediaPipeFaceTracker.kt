@@ -13,6 +13,7 @@ import com.pixielook.facefocus.models.FaceDetection
 import com.pixielook.facefocus.models.Landmark
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicBoolean
 
 class MediaPipeFaceTracker(
     private val context: Context,
@@ -20,6 +21,7 @@ class MediaPipeFaceTracker(
 ) {
     private var faceDetector: FaceDetector? = null
     private val backgroundExecutor: ExecutorService = Executors.newSingleThreadExecutor()
+    private val isProcessing = AtomicBoolean(false)
 
     init {
         setupFaceDetector()
@@ -36,18 +38,27 @@ class MediaPipeFaceTracker(
             .setRunningMode(RunningMode.LIVE_STREAM)
             .setResultListener { result, _ ->
                 processResult(result)
+                isProcessing.set(false)
             }
             .setErrorListener { error ->
                 println("MediaPipe Error: ${error.message}")
+                isProcessing.set(false)
             }
 
         faceDetector = FaceDetector.createFromOptions(context, optionsBuilder.build())
     }
 
     fun detect(bitmap: Bitmap, timestamp: Long) {
+        if (isProcessing.get()) return // Skip frame if busy
+
+        isProcessing.set(true)
         backgroundExecutor.execute {
-            val mpImage = BitmapImageBuilder(bitmap).build()
-            faceDetector?.detectAsync(mpImage, timestamp)
+            try {
+                val mpImage = BitmapImageBuilder(bitmap).build()
+                faceDetector?.detectAsync(mpImage, timestamp)
+            } catch (e: Exception) {
+                isProcessing.set(false)
+            }
         }
     }
 

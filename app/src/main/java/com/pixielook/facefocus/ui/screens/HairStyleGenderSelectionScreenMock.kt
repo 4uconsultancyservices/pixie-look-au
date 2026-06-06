@@ -54,26 +54,14 @@ fun HairStyleGenderSelectionScreenMock(
 
         Row(modifier = Modifier.fillMaxSize()) {
             // Men Selection Area (Left half)
-            Box(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .weight(1f)
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null,
-                        onClick = { onGenderSelected(true) }
-                    )
+            GenderSelectionArea(
+                modifier = Modifier.weight(1f),
+                onClick = { onGenderSelected(true) }
             )
             // Women Selection Area (Right half)
-            Box(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .weight(1f)
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null,
-                        onClick = { onGenderSelected(false) }
-                    )
+            GenderSelectionArea(
+                modifier = Modifier.weight(1f),
+                onClick = { onGenderSelected(false) }
             )
         }
 
@@ -88,4 +76,28 @@ fun HairStyleGenderSelectionScreenMock(
             )
         }
     }
+}
+
+@Composable
+private fun GenderSelectionArea(
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val alpha by animateFloatAsState(
+        targetValue = if (isPressed) 0.15f else 0f,
+        label = "selectionAlpha"
+    )
+
+    Box(
+        modifier = modifier
+            .fillMaxHeight()
+            .background(Color.White.copy(alpha = alpha))
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick
+            )
+    )
 }

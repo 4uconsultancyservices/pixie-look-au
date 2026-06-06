@@ -1,6 +1,7 @@
 package com.pixielook.facefocus.ui.tutorial
 
 import android.app.Application
+import androidx.camera.core.CameraSelector
 import androidx.camera.view.PreviewView
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LifecycleOwner
@@ -24,18 +25,22 @@ class TutorialViewModel(application: Application) : AndroidViewModel(application
     private val _videoState = MutableStateFlow(VideoState())
     val videoState = _videoState.asStateFlow()
 
-    private val _isTrackingEnabled = MutableStateFlow(true)
-    val isTrackingEnabled = _isTrackingEnabled.asStateFlow()
-
-    private val _isAutoZoomEnabled = MutableStateFlow(true)
-    val isAutoZoomEnabled = _isAutoZoomEnabled.asStateFlow()
+    private val _settings = MutableStateFlow(TutorialSettings())
+    val settings = _settings.asStateFlow()
 
     fun startCamera(lifecycleOwner: LifecycleOwner, previewView: PreviewView) {
         _cameraState.value = CameraState.STARTING
         viewModelScope.launch {
             try {
+                cameraPipeline?.release()
+                val lensFacing = when(_settings.value.lensFacing) {
+                    0 -> CameraSelector.LENS_FACING_FRONT
+                    1 -> CameraSelector.LENS_FACING_BACK
+                    2 -> 2 // LENS_FACING_EXTERNAL
+                    else -> CameraSelector.LENS_FACING_BACK // Fallback for IP Cam
+                }
                 cameraPipeline = CameraPipeline(getApplication(), lifecycleOwner, trackingService)
-                cameraPipeline?.bindCamera(previewView)
+                cameraPipeline?.bindCamera(previewView, lensFacing)
                 _cameraState.value = CameraState.RUNNING
             } catch (e: Exception) {
                 _cameraState.value = CameraState.ERROR
@@ -43,21 +48,34 @@ class TutorialViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
+    fun switchCamera() {
+        val nextLens = (_settings.value.lensFacing + 1) % 3
+        updateSettings(_settings.value.copy(lensFacing = nextLens))
+    }
+
     fun stopCamera() {
         cameraPipeline?.release()
         _cameraState.value = CameraState.IDLE
     }
 
+    fun updateSettings(newSettings: TutorialSettings) {
+        val lensChanged = newSettings.lensFacing != _settings.value.lensFacing
+        _settings.value = newSettings
+        trackingService.updateSettings(newSettings)
+        
+        if (lensChanged) {
+            _cameraState.value = CameraState.IDLE
+        }
+    }
+
     fun toggleTracking() {
-        val newState = !_isTrackingEnabled.value
-        _isTrackingEnabled.value = newState
-        trackingService.setTrackingEnabled(newState)
+        val newSettings = _settings.value.copy(isFaceTrackingEnabled = !_settings.value.isFaceTrackingEnabled)
+        updateSettings(newSettings)
     }
 
     fun toggleAutoZoom() {
-        val newState = !_isAutoZoomEnabled.value
-        _isAutoZoomEnabled.value = newState
-        trackingService.setAutoZoomEnabled(newState)
+        val newSettings = _settings.value.copy(isAutoZoomEnabled = !_settings.value.isAutoZoomEnabled)
+        updateSettings(newSettings)
     }
 
     fun updateVideoState(state: VideoState) {

@@ -26,10 +26,10 @@ class TrackingService(
     private val smoother = SmoothTracker()
     private var isTrackingEnabled = true
     private var isAutoZoomEnabled = true
+    private var currentSettings = TutorialSettings()
 
     private val frameCounter = AtomicInteger(0)
     private var lastFpsTimestamp = System.currentTimeMillis()
-    private var lastProcessTimestamp = System.currentTimeMillis()
 
     fun processFrame(cameraFrame: CameraFrame) {
         if (!isTrackingEnabled) {
@@ -52,15 +52,25 @@ class TrackingService(
     }
 
     private fun processFaceResult(face: FaceDetection?) {
-        val resultData = if (isAutoZoomEnabled) {
-            smoother.process(face?.boundingBox)
+        val faceWithHair = face?.let {
+            // Extend bounding box upwards significantly to ensure hair is covered
+            // Height increase by 70% of face height upwards
+            val height = it.boundingBox.height()
+            val newTop = (it.boundingBox.top - height * 0.7f).coerceAtLeast(0f)
+            val newBottom = it.boundingBox.bottom // Keep chin as base
+            it.copy(boundingBox = RectF(it.boundingBox.left, newTop, it.boundingBox.right, newBottom))
+        }
+
+        val resultData = if (isAutoZoomEnabled && faceWithHair != null) {
+            smoother.process(faceWithHair.boundingBox)
         } else {
-            TrackingResultData(face?.boundingBox, 1.0f)
+            // If tracking lost, smoothedBox becomes null but smoother.process handles returning to center
+            smoother.process(null)
         }
 
         _trackingResult.update {
             it.copy(
-                face = face,
+                face = faceWithHair,
                 smoothedBox = resultData.smoothedBox,
                 zoomLevel = resultData.zoomLevel,
                 metrics = it.metrics.copy(
@@ -68,6 +78,13 @@ class TrackingService(
                 )
             )
         }
+    }
+
+    fun updateSettings(settings: TutorialSettings) {
+        currentSettings = settings
+        isTrackingEnabled = settings.isFaceTrackingEnabled
+        isAutoZoomEnabled = settings.isAutoZoomEnabled
+        // We could pass smoothing/sensitivity to the smoother here if needed
     }
 
     fun setTrackingEnabled(enabled: Boolean) {

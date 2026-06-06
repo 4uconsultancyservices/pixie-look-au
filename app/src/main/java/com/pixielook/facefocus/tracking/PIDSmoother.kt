@@ -19,17 +19,17 @@ class PIDSmoother(
         val now = System.currentTimeMillis()
         if (lastTime == -1L) {
             lastTime = now
-            return current
+            return 0f
         }
 
         val dt = (now - lastTime) / 1000f
-        if (dt <= 0) return current
+        if (dt <= 0.001f) return 0f 
 
         val error = target - current
         integral += error * dt
         
         // Anti-windup
-        integral = max(minOutput / ki.coerceAtLeast(0.01f), min(maxOutput / ki.coerceAtLeast(0.01f), integral))
+        integral = max(minOutput / ki.coerceAtLeast(0.001f), min(maxOutput / ki.coerceAtLeast(0.001f), integral))
 
         val derivative = (error - lastError) / dt
         val output = (kp * error) + (ki * integral) + (kd * derivative)
@@ -48,62 +48,60 @@ class PIDSmoother(
 }
 
 class SmoothTracker {
-    private val xSmoother = PIDSmoother(0.20f, 0.02f, 0.08f)
-    private val ySmoother = PIDSmoother(0.20f, 0.02f, 0.08f)
-    private val zoomSmoother = PIDSmoother(0.12f, 0.008f, 0.04f)
+    private val xSmoother = PIDSmoother(0.05f, 0.001f, 0.25f) 
+    private val ySmoother = PIDSmoother(0.05f, 0.001f, 0.25f)
 
     private var currentX = 0.5f
     private var currentY = 0.5f
-    private var currentZoom = 1.0f
     
-    private var lastValidBox: RectF? = null
-    private var framesSinceLastDetection = 0
-    private val MAX_LOST_FRAMES = 15 // Hold tracking for ~0.5s if lost
+    private var targetX = 0.5f
+    private var targetY = 0.5f
 
-    fun process(targetBox: RectF?): TrackingResultData {
-        val activeBox = if (targetBox != null) {
-            framesSinceLastDetection = 0
-            lastValidBox = targetBox
-            targetBox
+    // State Locking Logic - HIGH THRESHOLD for stability
+    private var isUserPresent = false
+    private var presenceCounter = 0
+    private var absenceCounter = 0
+    private val PRESENCE_REQUIRED_FRAMES = 10 
+    private val ABSENCE_REQUIRED_FRAMES = 90  
+
+    fun process(targetBox: RectF?, confidence: Float): TrackingResultData {
+        val detected = targetBox != null && confidence > 0.40f 
+        
+        if (detected) {
+            absenceCounter = 0
+            presenceCounter++
+            if (presenceCounter >= PRESENCE_REQUIRED_FRAMES) {
+                isUserPresent = true
+            }
+            
+            if (isUserPresent) {
+                val alpha = 0.05f 
+                targetX = targetX * (1 - alpha) + targetBox!!.centerX() * alpha
+                targetY = targetY * (1 - alpha) + targetBox.centerY() * alpha
+            }
         } else {
-            framesSinceLastDetection++
-            if (framesSinceLastDetection < MAX_LOST_FRAMES) {
-                lastValidBox // Keep using last valid box
-            } else {
-                null // Actually lost
+            presenceCounter = 0
+            absenceCounter++
+            if (absenceCounter >= ABSENCE_REQUIRED_FRAMES) {
+                isUserPresent = false
+                targetX = 0.5f
+                targetY = 0.5f
             }
         }
 
-        if (activeBox == null) {
-            // Slowly return to center/zoom 1.0 if lost
-            val dx = xSmoother.update(0.5f, currentX)
-            val dy = ySmoother.update(0.5f, currentY)
-            val dZoom = zoomSmoother.update(1.0f, currentZoom)
-            currentX += dx
-            currentY += dy
-            currentZoom += dZoom
-        } else {
-            val targetX = activeBox.centerX()
-            val targetY = activeBox.centerY()
-            val boxHeight = activeBox.height()
-            val targetZoom = (0.5f / boxHeight.coerceAtLeast(0.1f)).coerceIn(1.0f, 3.0f)
+        // PID update for X/Y movement
+        val dx = xSmoother.update(targetX, currentX)
+        val dy = ySmoother.update(targetY, currentY)
+        currentX += dx
+        currentY += dy
 
-            val dx = xSmoother.update(targetX, currentX)
-            val dy = ySmoother.update(targetY, currentY)
-            val dZoom = zoomSmoother.update(targetZoom, currentZoom)
+        // Clamp positions
+        currentX = currentX.coerceIn(0.2f, 0.8f)
+        currentY = currentY.coerceIn(0.2f, 0.8f)
 
-            currentX += dx
-            currentY += dy
-            currentZoom += dZoom
-        }
-
-        // Clamp values
-        currentX = currentX.coerceIn(0f, 1f)
-        currentY = currentY.coerceIn(0f, 1f)
-        currentZoom = currentZoom.coerceIn(1.0f, 3.0f)
-
-        val smoothWidth = 0.4f / currentZoom
-        val smoothHeight = 0.6f / currentZoom
+        // Return box at fixed 1.0x zoom framing (Face specific)
+        val smoothWidth = 0.2f
+        val smoothHeight = 0.2f
         
         val smoothedBox = RectF(
             currentX - smoothWidth / 2,
@@ -112,17 +110,20 @@ class SmoothTracker {
             currentY + smoothHeight / 2
         )
 
-        return TrackingResultData(smoothedBox, currentZoom)
+        return TrackingResultData(smoothedBox, false)
     }
 
     fun reset() {
         xSmoother.reset()
         ySmoother.reset()
-        zoomSmoother.reset()
+        currentX = 0.5f
+        currentY = 0.5f
+        targetX = 0.5f
+        targetY = 0.5f
     }
 }
 
 data class TrackingResultData(
     val smoothedBox: RectF?,
-    val zoomLevel: Float
+    val isHeavyMotion: Boolean
 )

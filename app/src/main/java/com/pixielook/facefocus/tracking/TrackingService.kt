@@ -15,7 +15,7 @@ class TrackingService(
     private val coroutineScope: CoroutineScope
 ) {
     private val _trackingResult = MutableStateFlow(
-        TrackingResult(null, null, 1.0f, PerformanceMetrics(0, 0, "Initializing"))
+        TrackingResult(null, null, false, PerformanceMetrics(0, 0, "Initializing"))
     )
     val trackingResult = _trackingResult.asStateFlow()
 
@@ -25,7 +25,6 @@ class TrackingService(
     
     private val smoother = SmoothTracker()
     private var isTrackingEnabled = true
-    private var isAutoZoomEnabled = true
     private var currentSettings = TutorialSettings()
 
     private val frameCounter = AtomicInteger(0)
@@ -52,29 +51,17 @@ class TrackingService(
     }
 
     private fun processFaceResult(face: FaceDetection?) {
-        val faceWithHair = face?.let {
-            // Extend bounding box upwards significantly to ensure hair is covered
-            // Height increase by 70% of face height upwards
-            val height = it.boundingBox.height()
-            val newTop = (it.boundingBox.top - height * 0.7f).coerceAtLeast(0f)
-            val newBottom = it.boundingBox.bottom // Keep chin as base
-            it.copy(boundingBox = RectF(it.boundingBox.left, newTop, it.boundingBox.right, newBottom))
-        }
-
-        val resultData = if (isAutoZoomEnabled && faceWithHair != null) {
-            smoother.process(faceWithHair.boundingBox)
-        } else {
-            // If tracking lost, smoothedBox becomes null but smoother.process handles returning to center
-            smoother.process(null)
-        }
+        // Use the smoothed result including the confidence threshold
+        val confidence = face?.confidence ?: 0f
+        val resultData = smoother.process(face?.boundingBox, confidence)
 
         _trackingResult.update {
             it.copy(
-                face = faceWithHair,
+                face = face,
                 smoothedBox = resultData.smoothedBox,
-                zoomLevel = resultData.zoomLevel,
+                isHeavyMotion = resultData.isHeavyMotion,
                 metrics = it.metrics.copy(
-                    trackingStatus = if (face != null) "Tracking" else "Searching"
+                    trackingStatus = if (face != null) "Face Tracking" else "Searching"
                 )
             )
         }
@@ -83,17 +70,11 @@ class TrackingService(
     fun updateSettings(settings: TutorialSettings) {
         currentSettings = settings
         isTrackingEnabled = settings.isFaceTrackingEnabled
-        isAutoZoomEnabled = settings.isAutoZoomEnabled
         // We could pass smoothing/sensitivity to the smoother here if needed
     }
 
     fun setTrackingEnabled(enabled: Boolean) {
         isTrackingEnabled = enabled
-        if (!enabled) smoother.reset()
-    }
-
-    fun setAutoZoomEnabled(enabled: Boolean) {
-        isAutoZoomEnabled = enabled
         if (!enabled) smoother.reset()
     }
 

@@ -22,6 +22,7 @@ import com.pixielook.facefocus.ui.theme.PixieLookTheme
 enum class AppStep {
     SPLASH,
     INTRO_VIDEO,
+    OUTRO_VIDEO,
     INTRO1, INTRO2, INTRO3, INTRO4, INTRO5, INTRO6, INTRO7, INTRO9, INTRO10, INTRO11, INTRO12,
     MAIN_SCREEN, SHOP_SCREEN, ACCOUNT_SCREEN, REWARDS_SCREEN,
     VIRTUAL_TRY_ONS, TOP_MENTOR, SKIN_ANALYSE, MENTOR_PROFILE, MENTOR_DETAILS, MENTOR_BOOKING, MENTOR_REVIEW,
@@ -102,7 +103,7 @@ class MainActivity : ComponentActivity() {
                         when (step) {
                             AppStep.SPLASH -> SplashScreen { 
                                 // Moving to Intro1 replaces Splash in history
-                                navigateTo(AppStep.INTRO1, clearHistory = true) 
+                                navigateTo(AppStep.INTRO1, clearHistory = true)
                             }
                             
                             AppStep.INTRO1 -> IntroScreen1(onNext = { navigateTo(AppStep.INTRO2) }, onBack = { /* No back from first screen */ })
@@ -186,7 +187,11 @@ class MainActivity : ComponentActivity() {
                             AppStep.HAIR_STYLE_FOR_WOMEN -> HairStyleForWomeScreen(onNext = { navigateTo(AppStep.INTRO_VIDEO) }, onBack = { goBack() }, onTutorial = { navigateTo(AppStep.INTRO_VIDEO) })
 
                             AppStep.INTRO_VIDEO -> IntroVideoScreen(onVideoFinished = { navigateTo(AppStep.TUTORIAL_SCREEN) })
-                            AppStep.TUTORIAL_SCREEN -> TutorialScreen(onBack = { goBack() })
+                            AppStep.TUTORIAL_SCREEN -> TutorialScreen(
+                                onBack = { goBack() },
+                                onFinish = { navigateTo(AppStep.OUTRO_VIDEO) }
+                            )
+                            AppStep.OUTRO_VIDEO -> OutroVideoScreen(onVideoFinished = { navigateTo(AppStep.MAIN_SCREEN, clearHistory = true) })
                         }
                     }
                 }

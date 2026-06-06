@@ -48,3 +48,16 @@ data class VideoState(
     val isLoading: Boolean = false,
     val currentStep: Int = 0
 )
+
+data class TutorialSettings(
+    val isFaceTrackingEnabled: Boolean = true,
+    val showTrackingOverlay: Boolean = true,
+    val showFaceLandmarks: Boolean = true,
+    val trackingSmoothing: Float = 0.5f,
+    val isAutoZoomEnabled: Boolean = true,
+    val zoomSensitivity: Float = 0.5f,
+    val isCameraMirrored: Boolean = true,
+    val lensFacing: Int = 0, // 0: Front, 1: Back, 2: External
+    val videoQuality: String = "1080p Full HD",
+    val theme: String = "Dark"
+)

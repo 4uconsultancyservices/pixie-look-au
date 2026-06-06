@@ -1,14 +1,19 @@
 package com.pixielook.facefocus
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.core.content.ContextCompat
 import com.pixielook.facefocus.ui.components.NavigationContainer
 import com.pixielook.facefocus.ui.screens.*
 import com.pixielook.facefocus.ui.tutorial.TutorialScreen
@@ -16,6 +21,7 @@ import com.pixielook.facefocus.ui.theme.PixieLookTheme
 
 enum class AppStep {
     SPLASH,
+    INTRO_VIDEO,
     INTRO1, INTRO2, INTRO3, INTRO4, INTRO5, INTRO6, INTRO7, INTRO9, INTRO10, INTRO11, INTRO12,
     MAIN_SCREEN, SHOP_SCREEN, ACCOUNT_SCREEN, REWARDS_SCREEN,
     VIRTUAL_TRY_ONS, TOP_MENTOR, SKIN_ANALYSE, MENTOR_PROFILE, MENTOR_DETAILS, MENTOR_BOOKING, MENTOR_REVIEW,
@@ -35,6 +41,29 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             PixieLookTheme {
+                val context = androidx.compose.ui.platform.LocalContext.current
+                var hasCameraPermission by remember {
+                    mutableStateOf(
+                        ContextCompat.checkSelfPermission(
+                            context,
+                            Manifest.permission.CAMERA
+                        ) == PackageManager.PERMISSION_GRANTED
+                    )
+                }
+
+                val launcher = rememberLauncherForActivityResult(
+                    contract = ActivityResultContracts.RequestPermission(),
+                    onResult = { granted ->
+                        hasCameraPermission = granted
+                    }
+                )
+
+                LaunchedEffect(Unit) {
+                    if (!hasCameraPermission) {
+                        launcher.launch(Manifest.permission.CAMERA)
+                    }
+                }
+
                 val navigationHistory = remember { mutableStateListOf(AppStep.SPLASH) }
                 val currentStep = navigationHistory.last()
                 var isBackNavigation by remember { mutableStateOf(false) }
@@ -115,28 +144,7 @@ class MainActivity : ComponentActivity() {
                             AppStep.SKIN_REC_MASSAGE -> SkinRecomendationMassageScreen(onNext = { navigateTo(AppStep.SKIN_REC_PRODUCTS) }, onBack = { goBack() })
                             AppStep.SKIN_REC_PRODUCTS -> SkinRecomendationProductsScreen(onNext = { navigateTo(AppStep.HAIR_STYLE_FOR_MEN_1) }, onBack = { goBack() })
 
-                            AppStep.HAIR_STYLE_FOR_MEN_1 -> HairStyleForMenScreen1(onNext = { navigateTo(AppStep.HAIR_STYLE_FOR_MEN_2) }, onBack = { goBack() }, onTutorial = { navigateTo(AppStep.TUTORIAL_SCREEN) })
-                            AppStep.HAIR_STYLE_FOR_MEN_2 -> HairStyleForMenScreen2(onNext = { navigateTo(AppStep.HAIR_STYLE_FOR_MEN_3) }, onBack = { goBack() })
-                            AppStep.HAIR_STYLE_FOR_MEN_3 -> HairStyleForMenScreen3(onNext = { navigateTo(AppStep.HAIR_STYLE_FOR_WOMEN) }, onBack = { goBack() })
 
-                            AppStep.HAIR_STYLE_FOR_WOMEN -> HairStyleForWomeScreen(onNext = { navigateTo(AppStep.HAIR_STYLE_SEARCH_MEN) }, onBack = { goBack() }, onTutorial = { navigateTo(AppStep.TUTORIAL_SCREEN) })
-                            AppStep.HAIR_STYLE_SEARCH_MEN -> HairStyleSearchForMenScreen(onNext = { navigateTo(AppStep.HAIR_STYLE_SEARCH_WOMEN) }, onBack = { goBack() })
-                            AppStep.HAIR_STYLE_SEARCH_WOMEN -> HairStyleSearchForWomeScreen(onNext = { navigateTo(AppStep.HAIR_STYLE_SEARCH_SEL_MEN) }, onBack = { goBack() })
-                            
-                            AppStep.HAIR_STYLE_SEARCH_SEL_MEN -> HairStyleSearchSelectionForMenScreen(onNext = { navigateTo(AppStep.HAIR_STYLE_SEARCH_SEL_WOMEN) }, onBack = { goBack() })
-                            AppStep.HAIR_STYLE_SEARCH_SEL_WOMEN -> HairStyleSearchSelectionForWomenScreen(onNext = { navigateTo(AppStep.HAIR_STYLE_ACCESSORIES) }, onBack = { goBack() })
-                            
-                            AppStep.HAIR_STYLE_ACCESSORIES -> HairStyleWithAccessoriesScreen(onNext = { navigateTo(AppStep.HAIR_STYLE_ELECTRONIC) }, onBack = { goBack() })
-                            AppStep.HAIR_STYLE_ELECTRONIC -> HairStyleWithElectronicDevicesScreen(
-                                onNext = { 
-                                    if (isSelectedGenderMen) {
-                                        navigateTo(AppStep.HAIR_STYLE_SEARCH_MEN)
-                                    } else {
-                                        navigateTo(AppStep.HAIR_STYLE_SEARCH_WOMEN)
-                                    }
-                                }, 
-                                onBack = { goBack() }
-                            )
 
                             AppStep.FACE_FOCUS_SCREEN -> FaceFocusScreenMock(onNext = { navigateTo(AppStep.FACE_FOCUS_SELECTION ) }, onBack = { goBack() })
                             AppStep.FACE_FOCUS_SELECTION -> FaceFocusSelectionScreen(onNext = { navigateTo(AppStep.FACE_FOCUS_AFTER_SEL) }, onBack = { goBack() })
@@ -153,8 +161,31 @@ class MainActivity : ComponentActivity() {
                                 onBack = { goBack() }
                             )
                             AppStep.TIME_SEL_MOCK -> HairStyleTimeSelectionScreenMock(onNext = { navigateTo(AppStep.TYPE_SEL_MOCK) }, onBack = { goBack() })
-                            AppStep.TYPE_SEL_MOCK -> HairStyleTypeSelectionScreenMock(onNext = { navigateTo(AppStep.SPLASH, clearHistory = true) }, onBack = { goBack() })
-                            
+                            AppStep.TYPE_SEL_MOCK -> HairStyleTypeSelectionScreenMock(onNext = { navigateTo(AppStep.HAIR_STYLE_ACCESSORIES, clearHistory = true) }, onBack = { goBack() })
+                            AppStep.HAIR_STYLE_ACCESSORIES -> HairStyleWithAccessoriesScreen(onNext = { navigateTo(AppStep.HAIR_STYLE_ELECTRONIC) }, onBack = { goBack() })
+                            AppStep.HAIR_STYLE_ELECTRONIC -> HairStyleWithElectronicDevicesScreen(
+                                onNext = {
+                                    if (isSelectedGenderMen) {
+                                        navigateTo(AppStep.HAIR_STYLE_SEARCH_MEN)
+                                    } else {
+                                        navigateTo(AppStep.HAIR_STYLE_SEARCH_WOMEN)
+                                    }
+                                },
+                                onBack = { goBack() }
+                            )
+                            AppStep.HAIR_STYLE_SEARCH_MEN -> HairStyleSearchForMenScreen(onNext = { navigateTo(AppStep.HAIR_STYLE_SEARCH_SEL_MEN) }, onBack = { goBack() })
+                            AppStep.HAIR_STYLE_SEARCH_WOMEN -> HairStyleSearchForWomeScreen(onNext = { navigateTo(AppStep.HAIR_STYLE_SEARCH_SEL_WOMEN) }, onBack = { goBack() })
+
+
+                            AppStep.HAIR_STYLE_SEARCH_SEL_MEN -> HairStyleSearchSelectionForMenScreen(onNext = { navigateTo(AppStep.HAIR_STYLE_SEARCH_SEL_WOMEN) }, onBack = { goBack() })
+                            AppStep.HAIR_STYLE_FOR_MEN_1 -> HairStyleForMenScreen1(onNext = { navigateTo(AppStep.HAIR_STYLE_FOR_MEN_2) }, onBack = { goBack() }, onTutorial = { navigateTo(AppStep.INTRO_VIDEO) })
+                            AppStep.HAIR_STYLE_FOR_MEN_2 -> HairStyleForMenScreen2(onNext = { navigateTo(AppStep.HAIR_STYLE_FOR_MEN_3) }, onBack = { goBack() })
+                            AppStep.HAIR_STYLE_FOR_MEN_3 -> HairStyleForMenScreen3(onNext = { navigateTo(AppStep.INTRO_VIDEO) }, onBack = { goBack() })
+
+                            AppStep.HAIR_STYLE_SEARCH_SEL_WOMEN -> HairStyleSearchSelectionForWomenScreen(onNext = { navigateTo(AppStep.HAIR_STYLE_FOR_WOMEN) }, onBack = { goBack() })
+                            AppStep.HAIR_STYLE_FOR_WOMEN -> HairStyleForWomeScreen(onNext = { navigateTo(AppStep.INTRO_VIDEO) }, onBack = { goBack() }, onTutorial = { navigateTo(AppStep.INTRO_VIDEO) })
+
+                            AppStep.INTRO_VIDEO -> IntroVideoScreen(onVideoFinished = { navigateTo(AppStep.TUTORIAL_SCREEN) })
                             AppStep.TUTORIAL_SCREEN -> TutorialScreen(onBack = { goBack() })
                         }
                     }

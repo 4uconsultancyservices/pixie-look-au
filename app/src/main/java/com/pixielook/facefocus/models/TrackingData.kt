@@ -18,7 +18,7 @@ data class FaceDetection(
 data class TrackingResult(
     val face: FaceDetection?,
     val smoothedBox: RectF?,
-    val zoomLevel: Float,
+    val isHeavyMotion: Boolean,
     val metrics: PerformanceMetrics
 )
 
@@ -54,8 +54,6 @@ data class TutorialSettings(
     val showTrackingOverlay: Boolean = true,
     val showFaceLandmarks: Boolean = true,
     val trackingSmoothing: Float = 0.5f,
-    val isAutoZoomEnabled: Boolean = true,
-    val zoomSensitivity: Float = 0.5f,
     val isCameraMirrored: Boolean = true,
     val lensFacing: Int = 0, // 0: Front, 1: Back, 2: External
     val videoQuality: String = "1080p Full HD",

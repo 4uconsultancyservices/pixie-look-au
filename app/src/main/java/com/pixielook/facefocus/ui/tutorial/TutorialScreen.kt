@@ -3,19 +3,21 @@ package com.pixielook.facefocus.ui.tutorial
 import android.Manifest
 import android.content.pm.PackageManager
 import android.content.res.Configuration
-import android.net.Uri
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -31,28 +33,22 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import com.pixielook.facefocus.models.CameraState
 import com.pixielook.facefocus.models.TrackingResult
-
-import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.vectorResource
 import androidx.media3.datasource.RawResourceDataSource
 import com.pixielook.facefocus.R
-import com.pixielook.facefocus.models.TutorialSettings
+import com.pixielook.facefocus.models.*
 
 @Composable
 fun TutorialScreen(
     onBack: () -> Unit,
+    onFinish: () -> Unit,
     viewModel: TutorialViewModel = viewModel()
 ) {
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
     val trackingResult by viewModel.trackingResult.collectAsState()
     val cameraState by viewModel.cameraState.collectAsState()
-    val videoState by viewModel.videoState.collectAsState()
     val settings by viewModel.settings.collectAsState()
     
     var showSettings by remember { mutableStateOf(false) }
@@ -65,124 +61,76 @@ fun TutorialScreen(
         )
     }
 
-    Scaffold(
-        topBar = {
-            TutorialTopBar(
-                title = "Settings",
-                onBack = onBack,
-                onOpenSettings = { showSettings = true }
-            )
-        },
-        containerColor = Color(0xFF080808)
-    ) { paddingValues ->
-        Box(modifier = Modifier.padding(paddingValues)) {
-            if (isLandscape) {
-                Row(modifier = Modifier.fillMaxSize()) {
-                    Box(modifier = Modifier.weight(1f)) {
-                        TutorialVideoPlayer(
-                            resId = R.raw.hairstyle_tutorial,
-                            onStateUpdate = viewModel::updateVideoState
-                        )
-                        // Tutorial Badge
-                        Surface(
-                            modifier = Modifier.padding(16.dp),
-                            color = Color(0xFF6200EE),
-                            shape = RoundedCornerShape(4.dp)
-                        ) {
-                            Text(
-                                "TUTORIAL",
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                                color = Color.White,
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                    }
-                    Box(modifier = Modifier.weight(1f)) {
-                        CameraTrackingPanel(
-                            viewModel = viewModel,
-                            trackingResult = trackingResult,
-                            cameraState = cameraState,
-                            settings = settings
-                        )
-                        
-                        // LIVE Badge
-                        Surface(
-                            modifier = Modifier.padding(16.dp),
-                            color = Color(0xFFFF5722),
-                            shape = RoundedCornerShape(4.dp)
-                        ) {
-                            Text(
-                                "LIVE",
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-                                color = Color.White,
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                        
-                        // Zoom Indicator
-                        Surface(
-                            modifier = Modifier
-                                .align(Alignment.TopEnd)
-                                .padding(16.dp),
-                            color = Color.Black.copy(alpha = 0.4f),
-                            shape = RoundedCornerShape(4.dp)
-                        ) {
-                            Text(
-                                "${String.format("%.1f", trackingResult.zoomLevel)}x",
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-                                color = Color.White,
-                                style = MaterialTheme.typography.labelSmall
-                            )
-                        }
-                    }
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black)
+    ) {
+        // Main split-screen content (Half-Half)
+        if (isLandscape) {
+            Row(modifier = Modifier.fillMaxSize()) {
+                Box(modifier = Modifier.weight(1f)) {
+                    TutorialVideoPlayer(resId = R.raw.hairstyle_tutorial)
                 }
-            } else {
-                Column(modifier = Modifier.fillMaxSize()) {
-                    Box(modifier = Modifier.weight(1f)) {
-                        TutorialVideoPlayer(
-                            resId = R.raw.hairstyle_tutorial,
-                            onStateUpdate = viewModel::updateVideoState
-                        )
-                    }
-                    Box(modifier = Modifier.weight(1f)) {
-                        CameraTrackingPanel(
-                            viewModel = viewModel,
-                            trackingResult = trackingResult,
-                            cameraState = cameraState,
-                            settings = settings
-                        )
-                    }
+                Box(modifier = Modifier.weight(1f)) {
+                    CameraTrackingPanel(
+                        viewModel = viewModel,
+                        trackingResult = trackingResult,
+                        cameraState = cameraState,
+                        settings = settings
+                    )
+                }
+            }
+        } else {
+            Column(modifier = Modifier.fillMaxSize()) {
+                Box(modifier = Modifier.weight(1f)) {
+                    TutorialVideoPlayer(resId = R.raw.hairstyle_tutorial)
+                }
+                Box(modifier = Modifier.weight(1f)) {
+                    CameraTrackingPanel(
+                        viewModel = viewModel,
+                        trackingResult = trackingResult,
+                        cameraState = cameraState,
+                        settings = settings
+                    )
                 }
             }
         }
-    }
-}
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun TutorialTopBar(
-    title: String,
-    onBack: () -> Unit,
-    onOpenSettings: () -> Unit
-) {
-    TopAppBar(
-        title = {
-            Text(title, style = MaterialTheme.typography.titleLarge, color = Color.White)
-        },
-        navigationIcon = {
-            IconButton(onClick = onBack) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
-            }
-        },
-        actions = {
-            IconButton(onClick = onOpenSettings) {
-                Icon(Icons.Default.Settings, contentDescription = "Settings", tint = Color.White)
-            }
-        },
-        colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF121212))
-    )
+        // Floating Back Button (Top Left)
+        IconButton(
+            onClick = onBack,
+            modifier = Modifier
+                .padding(16.dp)
+                .align(Alignment.TopStart)
+                .background(Color.Black.copy(alpha = 0.4f), CircleShape)
+        ) {
+            Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
+        }
+
+        // Floating Settings Button (Top Right)
+        IconButton(
+            onClick = { showSettings = true },
+            modifier = Modifier
+                .padding(16.dp)
+                .align(Alignment.TopEnd)
+                .background(Color.Black.copy(alpha = 0.4f), CircleShape)
+        ) {
+            Icon(Icons.Default.Settings, contentDescription = "Settings", tint = Color.White)
+        }
+
+        // Floating Finish Button (Bottom Right)
+        Button(
+            onClick = onFinish,
+            modifier = Modifier
+                .padding(16.dp)
+                .align(Alignment.BottomEnd),
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Black.copy(alpha = 0.4f)),
+            shape = RoundedCornerShape(8.dp)
+        ) {
+            Text("Finish Tutorial", color = Color.White)
+        }
+    }
 }
 
 @Composable
@@ -210,18 +158,6 @@ fun SettingsDialog(
                 SettingsToggle("Show Face Landmarks", "Facial landmark points", settings.showFaceLandmarks) {
                     onSettingsChanged(settings.copy(showFaceLandmarks = it))
                 }
-                SettingsSlider("Tracking Smoothing", "Higher = smoother but slower", settings.trackingSmoothing) {
-                    onSettingsChanged(settings.copy(trackingSmoothing = it))
-                }
-                
-                Spacer(modifier = Modifier.height(16.dp))
-                Text("Auto Zoom", color = Color.Yellow, style = MaterialTheme.typography.labelLarge)
-                SettingsToggle("Enable Auto Zoom", "Keep face centered", settings.isAutoZoomEnabled) {
-                    onSettingsChanged(settings.copy(isAutoZoomEnabled = it))
-                }
-                SettingsSlider("Zoom Sensitivity", "How aggressively to zoom", settings.zoomSensitivity) {
-                    onSettingsChanged(settings.copy(zoomSensitivity = it))
-                }
                 
                 Spacer(modifier = Modifier.height(16.dp))
                 Text("Camera", color = Color.Green, style = MaterialTheme.typography.labelLarge)
@@ -231,7 +167,7 @@ fun SettingsDialog(
                 
                 Button(
                     onClick = { 
-                        val nextLens = (settings.lensFacing + 1) % 4
+                        val nextLens = (settings.lensFacing + 1) % 3 // Match ViewModel's 0,1,2
                         onSettingsChanged(settings.copy(lensFacing = nextLens))
                     },
                     modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
@@ -239,25 +175,14 @@ fun SettingsDialog(
                     val cameraLabel = when(settings.lensFacing) {
                         0 -> "Front Camera"
                         1 -> "Back Camera"
-                        2 -> "External/USB Camera"
-                        else -> "IP Camera (Mock)"
+                        else -> "External/USB Camera"
                     }
-                    Text("Switch Camera (Current: $cameraLabel)")
+                    Text("Switch Camera ($cameraLabel)")
                 }
-                
-                if (settings.lensFacing == 3) {
-                    Text("IP Camera URL (RTSP/MJPEG)", color = Color.White, style = MaterialTheme.typography.labelSmall)
-                    // In a real app, we'd add an OutlinedTextField here to save the URL to settings
-                }
-
-                // Add more settings as needed
             }
         },
         confirmButton = {
-            Button(onClick = onDismiss) { Text("Save Settings") }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Reset Defaults") }
+            Button(onClick = onDismiss) { Text("Close") }
         },
         containerColor = Color(0xFF1E1E1E),
         textContentColor = Color.White,
@@ -282,25 +207,10 @@ fun SettingsToggle(title: String, subtitle: String, checked: Boolean, onCheckedC
     }
 }
 
-@Composable
-fun SettingsSlider(title: String, subtitle: String, value: Float, onValueChange: (Float) -> Unit) {
-    Column(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Column {
-                Text(title, color = Color.White, style = MaterialTheme.typography.bodyMedium)
-                Text(subtitle, color = Color.Gray, style = MaterialTheme.typography.labelSmall)
-            }
-            Text(String.format("%.2f", value), color = Color.Cyan, style = MaterialTheme.typography.labelSmall)
-        }
-        Slider(value = value, onValueChange = onValueChange)
-    }
-}
-
 @OptIn(UnstableApi::class)
 @Composable
 fun TutorialVideoPlayer(
-    resId: Int,
-    onStateUpdate: (com.pixielook.facefocus.models.VideoState) -> Unit
+    resId: Int
 ) {
     val context = LocalContext.current
     val videoUri = RawResourceDataSource.buildRawResourceUri(resId)
@@ -325,6 +235,7 @@ fun TutorialVideoPlayer(
             PlayerView(context).apply {
                 player = exoPlayer
                 useController = true
+                resizeMode = androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_ZOOM
                 setBackgroundColor(android.graphics.Color.BLACK)
             }
         },
@@ -346,12 +257,6 @@ fun CameraTrackingPanel(
         ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
     }
 
-    DisposableEffect(lifecycleOwner) {
-        onDispose {
-            viewModel.stopCamera()
-        }
-    }
-
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -359,36 +264,12 @@ fun CameraTrackingPanel(
             .clipToBounds()
     ) {
         if (hasCameraPermission) {
-            // Apply Dynamic Centering and Zoom
             val smoothedBox = trackingResult.smoothedBox
-            val zoom = if (settings.isAutoZoomEnabled) trackingResult.zoomLevel else 1.0f
+            val zoom = 1.0f // Zoom locked at 1.0x
             
-            // Calculate translation to keep subject centralized
-            // smoothedBox coords are 0..1. Center is 0.5, 0.5.
-            val tx = if (smoothedBox != null && settings.isAutoZoomEnabled) {
-                (0.5f - smoothedBox.centerX()) * zoom
-            } else 0f
-            
-            val ty = if (smoothedBox != null && settings.isAutoZoomEnabled) {
-                (0.5f - smoothedBox.centerY()) * zoom
-            } else 0f
-
-            val cameraModifier = if (settings.lensFacing == 3) {
-                // IP Camera View Placeholder (Could use ExoPlayer for RTSP)
-                Modifier.fillMaxSize()
-            } else {
-                Modifier
-                    .fillMaxSize()
-                    .graphicsLayer {
-                        scaleX = zoom * (if (settings.isCameraMirrored) -1f else 1f)
-                        scaleY = zoom
-                        // Clamp translation to prevent showing black edges
-                        val maxTx = (zoom - 1f) * 0.5f
-                        val maxTy = (zoom - 1f) * 0.5f
-                        translationX = tx.coerceIn(-maxTx, maxTx) * size.width
-                        translationY = ty.coerceIn(-maxTy, maxTy) * size.height
-                    }
-            }
+            // Centralization translation
+            val tx = if (smoothedBox != null) (0.5f - smoothedBox.centerX()) * zoom else 0f
+            val ty = if (smoothedBox != null) (0.5f - smoothedBox.centerY()) * zoom else 0f
 
             AndroidView(
                 factory = { ctx ->
@@ -397,7 +278,16 @@ fun CameraTrackingPanel(
                         scaleType = PreviewView.ScaleType.FILL_CENTER
                     }
                 },
-                modifier = cameraModifier,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .graphicsLayer {
+                        scaleX = zoom * (if (settings.isCameraMirrored) -1f else 1f)
+                        scaleY = zoom
+                        // Clamp translation to keep view within bounds
+                        val maxT = if (zoom > 1f) (zoom - 1f) * 0.5f else 0f
+                        translationX = tx.coerceIn(-maxT, maxT) * size.width
+                        translationY = ty.coerceIn(-maxT, maxT) * size.height
+                    },
                 update = { previewView ->
                     if (cameraState == CameraState.IDLE) {
                         viewModel.startCamera(lifecycleOwner, previewView)
@@ -424,8 +314,29 @@ fun CameraTrackingPanel(
             )
         }
 
+        // Tracking Details Row at the TOP of Camera Panel (Transparent)
+        Row(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .fillMaxWidth()
+                .padding(vertical = 12.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            TrackingDetail("Confidence", "${(trackingResult.face?.confidence?.times(100))?.toInt() ?: 0}%")
+            TrackingDetail("FPS", trackingResult.metrics.fps.toString())
+        }
+
         if (cameraState == CameraState.STARTING) {
             CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
         }
+    }
+}
+
+@Composable
+private fun TrackingDetail(label: String, value: String) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(label, color = Color.Gray, style = MaterialTheme.typography.labelSmall)
+        Text(value, color = Color.Cyan, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
     }
 }

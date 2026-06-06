@@ -49,7 +49,7 @@ class TutorialViewModel(application: Application) : AndroidViewModel(application
     }
 
     fun switchCamera() {
-        val nextLens = (_settings.value.lensFacing + 1) % 3
+        val nextLens = (_settings.value.lensFacing + 1) % 4
         updateSettings(_settings.value.copy(lensFacing = nextLens))
     }
 
@@ -73,17 +73,8 @@ class TutorialViewModel(application: Application) : AndroidViewModel(application
         updateSettings(newSettings)
     }
 
-    fun toggleAutoZoom() {
-        val newSettings = _settings.value.copy(isAutoZoomEnabled = !_settings.value.isAutoZoomEnabled)
-        updateSettings(newSettings)
-    }
-
     fun updateVideoState(state: VideoState) {
         _videoState.value = state
-    }
-
-    fun updateCurrentStep(step: Int) {
-        _videoState.update { it.copy(currentStep = step) }
     }
 
     override fun onCleared() {

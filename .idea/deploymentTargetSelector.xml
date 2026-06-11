@@ -4,14 +4,11 @@
     <selectionStates>
       <SelectionState runConfigName="app">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2026-05-28T22:05:51.149866400Z">
+        <DropdownSelection timestamp="2026-06-10T17:40:29.424963300Z">
           <Target type="DEFAULT_BOOT">
             <handle>
-              <DeviceId pluginId="FirebaseDirectAccess" identifier="reservation=projects/facefocus-f1f5fe73/deviceSessions/session-48r14xsx0ey3a" />
+              <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\draj4\.android\avd\Pixel_Tablet.avd" />
             </handle>
-            <template>
-              <DeviceId pluginId="FirebaseDirectAccess" type="TEMPLATE" identifier="model_id=gts8uwifi/33" />
-            </template>
           </Target>
         </DropdownSelection>
         <DialogSelection />

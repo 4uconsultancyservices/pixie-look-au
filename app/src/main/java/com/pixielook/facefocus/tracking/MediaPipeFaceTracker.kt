@@ -28,35 +28,40 @@ class MediaPipeFaceTracker(
     }
 
     private fun setupFaceDetector() {
-        val baseOptionsBuilder = BaseOptions.builder()
-            .setDelegate(Delegate.GPU)
-            .setModelAssetPath("blaze_face_short_range.tflite")
+        try {
+            val baseOptionsBuilder = BaseOptions.builder()
+                .setDelegate(Delegate.CPU) // Use CPU for better compatibility on emulators
+                .setModelAssetPath("blaze_face_short_range.tflite")
 
-        val optionsBuilder = FaceDetector.FaceDetectorOptions.builder()
-            .setBaseOptions(baseOptionsBuilder.build())
-            .setMinDetectionConfidence(0.5f)
-            .setRunningMode(RunningMode.LIVE_STREAM)
-            .setResultListener { result, _ ->
-                processResult(result)
-                isProcessing.set(false)
-            }
-            .setErrorListener { error ->
-                println("MediaPipe Error: ${error.message}")
-                isProcessing.set(false)
-            }
+            val optionsBuilder = FaceDetector.FaceDetectorOptions.builder()
+                .setBaseOptions(baseOptionsBuilder.build())
+                .setMinDetectionConfidence(0.5f)
+                .setRunningMode(RunningMode.LIVE_STREAM)
+                .setResultListener { result, _ ->
+                    processResult(result)
+                    isProcessing.set(false)
+                }
+                .setErrorListener { error ->
+                    println("MediaPipe Error: ${error.message}")
+                    isProcessing.set(false)
+                }
 
-        faceDetector = FaceDetector.createFromOptions(context, optionsBuilder.build())
+            faceDetector = FaceDetector.createFromOptions(context, optionsBuilder.build())
+        } catch (e: Exception) {
+            println("MediaPipe Initialization failed: ${e.message}")
+            e.printStackTrace()
+        }
     }
 
     fun detect(bitmap: Bitmap, timestamp: Long) {
-        if (isProcessing.get()) return // Skip frame if busy
+        if ((isProcessing.get()) || (faceDetector == null)) return // Skip frame if busy or detector not initialized
 
         isProcessing.set(true)
         backgroundExecutor.execute {
             try {
                 val mpImage = BitmapImageBuilder(bitmap).build()
                 faceDetector?.detectAsync(mpImage, timestamp)
-            } catch (e: Exception) {
+            } catch (ignored: Exception) {
                 isProcessing.set(false)
             }
         }

@@ -30,13 +30,11 @@ import com.pixielook.facefocus.R
 
 @Composable
 fun HairStyleSearchSelectionForWomenScreen(
-    onNext: () -> Unit,
+    onGoToTutorial: () -> Unit,
+    onGoToAr: () -> Unit,
     onBack: () -> Unit
 ) {
     val imageAlpha = remember { Animatable(0f) }
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-    val scale by animateFloatAsState(if (isPressed) 0.96f else 1f, label = "scale")
 
     LaunchedEffect(Unit) {
         imageAlpha.animateTo(1f, tween(800, easing = FastOutSlowInEasing))
@@ -45,16 +43,7 @@ fun HairStyleSearchSelectionForWomenScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black)
-            .graphicsLayer {
-                scaleX = scale
-                scaleY = scale
-            }
-            .clickable(
-                interactionSource = interactionSource,
-                indication = null,
-                onClick = onNext
-            ),
+            .background(Color.Black),
         contentAlignment = Alignment.Center
     ) {
         Image(
@@ -63,6 +52,31 @@ fun HairStyleSearchSelectionForWomenScreen(
             modifier = Modifier.fillMaxSize().alpha(imageAlpha.value),
             contentScale = ContentScale.Fit
         )
+
+        // Hotspots for navigation
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Bottom
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.75f) // Hotspot area at the bottom
+                    .padding(bottom = 220.dp)
+            ) {
+                // "NO, Go to tutorial" area (Left half)
+                NavHotspot(
+                    onClick = onGoToTutorial,
+                    modifier = Modifier.weight(1f).fillMaxHeight()
+                )
+                
+                // "Yes, Go to AR" area (Right half)
+                NavHotspot(
+                    onClick = onGoToAr,
+                    modifier = Modifier.weight(1f).fillMaxHeight()
+                )
+            }
+        }
 
         IconButton(
             onClick = onBack,
@@ -75,4 +89,29 @@ fun HairStyleSearchSelectionForWomenScreen(
             )
         }
     }
+}
+
+@Composable
+private fun NavHotspot(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(if (isPressed) 0.95f else 1f, label = "scale")
+    val alpha by animateFloatAsState(if (isPressed) 0.1f else 0f, label = "alpha")
+
+    Box(
+        modifier = modifier
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
+            .background(Color.White.copy(alpha = alpha))
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick
+            )
+    )
 }

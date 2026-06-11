@@ -103,19 +103,21 @@ fun MainContent(
             contentScale = ContentScale.Fit
         )
 
-        // Navigation Overlay
-        Row(modifier = Modifier.fillMaxSize()) {
-            // Sidebar Navigation (Left side, approx 22% width)
+        Row(
+            modifier = Modifier.fillMaxSize().padding(top = 60.dp)
+        ) {
+
+            // Sidebar Navigation
             Column(
                 modifier = Modifier
-                    .fillMaxHeight()
-                    .fillMaxWidth(0.22f)
+                    .fillMaxHeight(0.85f)
+                    .fillMaxWidth(0.25f)
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // Top Profile/Logout Area
-                NavHotspot(onClick = onNavigateAccount, modifier = Modifier.fillMaxWidth().fillMaxHeight(0.18f))
 
-                // Menu Items
-                val menuItems = listOf(
+                val navItems = listOf(
+                    onNavigateAccount,
                     onNavigateFaceFitness,
                     onNavigateRewards,
                     onNavigateShop,
@@ -125,33 +127,44 @@ fun MainContent(
                     onNavigateVirtualTryOn
                 )
 
-                menuItems.forEach { action ->
-                    NavHotspot(onClick = action, modifier = Modifier.fillMaxWidth().weight(1f))
+                navItems.forEachIndexed { index, action ->
+                    NavHotspot(
+                        onClick = action,
+                        modifier = Modifier
+                            .weight(0.6f)
+                            .fillMaxWidth()
+                    )
                 }
-                
-                // Bottom Padding
-                Spacer(modifier = Modifier.fillMaxHeight(0.1f))
             }
 
-            // Main Content Area (Right side)
-            Box(modifier = Modifier.fillMaxSize()) {
+            // Main Content Area
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+            ) {
+
                 // Shop Now button area
                 NavHotspot(
                     onClick = onNavigateShop,
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
-                        .padding(bottom = 60.dp, end = 40.dp)
-                        .size(width = 180.dp, height = 60.dp)
+                        .padding(
+                            end = 60.dp,
+                            bottom = 80.dp
+                        )
+                        .size(
+                            width = 150.dp,
+                            height = 50.dp
+                        )
                 )
-                
-                // Catch-all tap for general next
+
+                // Catch-all tap area
                 Box(
-                    modifier = Modifier
-                        .fillMaxSize()
+                    modifier = Modifier.fillMaxSize()
                 )
             }
         }
-
         // Back Button
         IconButton(
             onClick = onBack,
@@ -198,7 +211,7 @@ private fun NavHotspot(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
-    val scale by animateFloatAsState(if (isPressed) 0.92f else 1f, label = "scale")
+    val scale by animateFloatAsState(if (isPressed) 0.82f else 1f, label = "scale")
     val alpha by animateFloatAsState(if (isPressed) 0.2f else 0f, label = "alpha")
 
     Box(

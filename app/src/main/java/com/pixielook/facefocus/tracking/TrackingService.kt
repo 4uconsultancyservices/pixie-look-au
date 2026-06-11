@@ -19,8 +19,13 @@ class TrackingService(
     )
     val trackingResult = _trackingResult.asStateFlow()
 
-    private val faceTracker = MediaPipeFaceTracker(context) { face ->
-        processFaceResult(face)
+    private val faceTracker: MediaPipeFaceTracker? = try {
+        MediaPipeFaceTracker(context) { face ->
+            processFaceResult(face)
+        }
+    } catch (e: Throwable) {
+        println("TrackingService: Failed to initialize MediaPipeFaceTracker: ${e.message}")
+        null
     }
     
     private val smoother = SmoothTracker()
@@ -31,7 +36,7 @@ class TrackingService(
     private var lastFpsTimestamp = System.currentTimeMillis()
 
     fun processFrame(cameraFrame: CameraFrame) {
-        if (!isTrackingEnabled) {
+        if (!isTrackingEnabled || faceTracker == null) {
             _trackingResult.update { it.copy(face = null, smoothedBox = null) }
             return
         }
@@ -79,7 +84,7 @@ class TrackingService(
     }
 
     fun release() {
-        faceTracker.release()
+        faceTracker?.release()
         smoother.reset()
     }
 }

@@ -72,7 +72,7 @@ class MainActivity : ComponentActivity() {
                 }
 
                 val navigationHistory = remember { mutableStateListOf(AppStep.SPLASH) }
-                val currentStep = navigationHistory.last()
+                val currentStep = navigationHistory.lastOrNull() ?: AppStep.SPLASH
                 var isBackNavigation by remember { mutableStateOf(false) }
                 var isSelectedGenderMen by remember { mutableStateOf(true) }
 
@@ -110,7 +110,7 @@ class MainActivity : ComponentActivity() {
                             when (step) {
                                 AppStep.SPLASH -> SplashScreen { 
                                     // Moving to Intro1 replaces Splash in history
-                                    navigateTo(AppStep.INTRO1, clearHistory = true)
+                                    navigateTo(AppStep.INTRO_VIDEO, clearHistory = true)
                                 }
                                 
                                 AppStep.INTRO1 -> IntroScreen1(onNext = { navigateTo(AppStep.INTRO2) }, onBack = { /* No back from first screen */ })
